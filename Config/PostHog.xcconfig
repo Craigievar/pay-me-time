@@ -1,0 +1,3 @@
+// Analytics remains disabled when the local file has not been generated.
+SCREENBUMP_POSTHOG_KEY =
+#include? "PostHog.local.xcconfig"

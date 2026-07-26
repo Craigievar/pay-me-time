@@ -1,0 +1,198 @@
+name: PayMeTime
+options:
+  bundleIdPrefix: com.craig
+  deploymentTarget:
+    iOS: "18.0"
+  xcodeVersion: "26.0"
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    MARKETING_VERSION: "1.0"
+    CURRENT_PROJECT_VERSION: "1"
+    DEVELOPMENT_TEAM: 9JWU7V7424
+    CODE_SIGN_STYLE: Automatic
+    GENERATE_INFOPLIST_FILE: YES
+packages:
+  PostHog:
+    url: https://github.com/PostHog/posthog-ios.git
+    exactVersion: 3.67.1
+targets:
+  PayMeTime:
+    type: application
+    platform: iOS
+    sources:
+      - PayMeTime
+    entitlements:
+      path: Config/PayMeTime.entitlements
+      properties:
+        com.apple.developer.family-controls: true
+        com.apple.security.application-groups:
+          - group.com.craig.paymetime
+    info:
+      path: PayMeTime/Info.plist
+      properties:
+        CFBundleDisplayName: Pay Me Time
+        PostHogProjectToken: $(SCREENBUMP_POSTHOG_KEY)
+        UILaunchScreen: {}
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+        UIApplicationSceneManifest:
+          UIApplicationSupportsMultipleScenes: false
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.craig.PayMeTime
+        TARGETED_DEVICE_FAMILY: "1"
+        ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS: YES
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+    configFiles:
+      Debug: Config/PostHog.xcconfig
+      Release: Config/PostHog.xcconfig
+    dependencies:
+      - package: PostHog
+      - target: PayMeTimeShieldConfiguration
+        embed: true
+      - target: PayMeTimeShieldAction
+        embed: true
+      - target: PayMeTimeDeviceActivityMonitor
+        embed: true
+      - target: PayMeTimeDeviceActivityReport
+        embed: true
+
+  PayMeTimeShieldConfiguration:
+    type: app-extension
+    platform: iOS
+    sources:
+      - Extensions/ShieldConfiguration
+    entitlements:
+      path: Config/PayMeTimeShieldConfiguration.entitlements
+      properties:
+        com.apple.developer.family-controls: true
+        com.apple.security.application-groups:
+          - group.com.craig.paymetime
+    info:
+      path: Extensions/ShieldConfiguration/Info.plist
+      properties:
+        CFBundleDisplayName: Pay Me Time Shield
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.ManagedSettingsUI.shield-configuration-service
+          NSExtensionPrincipalClass: $(PRODUCT_MODULE_NAME).ShieldConfigurationExtension
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.craig.PayMeTime.ShieldConfiguration
+        APPLICATION_EXTENSION_API_ONLY: YES
+        SKIP_INSTALL: YES
+
+  PayMeTimeShieldAction:
+    type: app-extension
+    platform: iOS
+    sources:
+      - Extensions/ShieldAction
+      - PayMeTime/Shared/AnalyticsShared.swift
+      - PayMeTime/Shared/ScreenTimeShared.swift
+    entitlements:
+      path: Config/PayMeTimeShieldAction.entitlements
+      properties:
+        com.apple.developer.family-controls: true
+        com.apple.security.application-groups:
+          - group.com.craig.paymetime
+    info:
+      path: Extensions/ShieldAction/Info.plist
+      properties:
+        CFBundleDisplayName: Pay Me Time Shield Action
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.ManagedSettings.shield-action-service
+          NSExtensionPrincipalClass: $(PRODUCT_MODULE_NAME).ShieldActionExtension
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.craig.PayMeTime.ShieldAction
+        APPLICATION_EXTENSION_API_ONLY: YES
+        SKIP_INSTALL: YES
+
+  PayMeTimeDeviceActivityMonitor:
+    type: app-extension
+    platform: iOS
+    sources:
+      - Extensions/DeviceActivityMonitor
+      - PayMeTime/Shared/AnalyticsShared.swift
+    entitlements:
+      path: Config/PayMeTimeDeviceActivityMonitor.entitlements
+      properties:
+        com.apple.developer.family-controls: true
+        com.apple.security.application-groups:
+          - group.com.craig.paymetime
+    info:
+      path: Extensions/DeviceActivityMonitor/Info.plist
+      properties:
+        CFBundleDisplayName: Pay Me Time Activity Monitor
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.deviceactivity.monitor-extension
+          NSExtensionPrincipalClass: $(PRODUCT_MODULE_NAME).DeviceActivityMonitorExtension
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.craig.PayMeTime.DeviceActivityMonitor
+        APPLICATION_EXTENSION_API_ONLY: YES
+        SKIP_INSTALL: YES
+
+  PayMeTimeDeviceActivityReport:
+    type: extensionkit-extension
+    platform: iOS
+    sources:
+      - Extensions/DeviceActivityReport
+      - PayMeTime/Shared/ScreenTimeShared.swift
+      - PayMeTime/Shared/DeviceActivityReportContext.swift
+      - PayMeTime/Shared/AnalyticsShared.swift
+      - PayMeTime/Shared/ProgressShared.swift
+      - PayMeTime/Design/PMTTheme.swift
+    entitlements:
+      path: Config/PayMeTimeDeviceActivityReport.entitlements
+      properties:
+        com.apple.developer.family-controls: true
+        com.apple.security.application-groups:
+          - group.com.craig.paymetime
+    info:
+      path: Extensions/DeviceActivityReport/Info.plist
+      properties:
+        CFBundleDisplayName: Pay Me Time Activity Report
+        EXAppExtensionAttributes:
+          EXExtensionPointIdentifier: com.apple.deviceactivityui.report-extension
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.craig.PayMeTime.DeviceActivityReport
+        APPLICATION_EXTENSION_API_ONLY: YES
+        SKIP_INSTALL: YES
+        SWIFT_VERSION: "5.0"
+        LD_RUNPATH_SEARCH_PATHS: "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks"
+
+  PayMeTimeTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - Tests/PayMeTimeTests
+    dependencies:
+      - target: PayMeTime
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.craig.PayMeTimeTests
+
+  PayMeTimeUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources:
+      - Tests/PayMeTimeUITests
+    dependencies:
+      - target: PayMeTime
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.craig.PayMeTimeUITests
+
+schemes:
+  PayMeTime:
+    build:
+      targets:
+        PayMeTime: all
+        PayMeTimeTests: [test]
+        PayMeTimeUITests: [test]
+    test:
+      targets:
+        - PayMeTimeTests
+        - PayMeTimeUITests
