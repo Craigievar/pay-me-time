@@ -116,7 +116,7 @@ struct SharedScreenTimeSnapshot: Codable {
 }
 
 enum ScreenTimeSharedRepository {
-    static let appGroupID = "group.com.craig.paymetime"
+    static let appGroupID = "group.com.nonagon.Screenbump"
     private static let snapshotKey = "screen-time-snapshot-v1"
     private static let snapshotFilename = "screen-time-snapshot-v2.json"
     private static let lockFilename = "screen-time-snapshot-v2.lock"

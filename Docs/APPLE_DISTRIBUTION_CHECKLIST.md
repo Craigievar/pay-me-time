@@ -38,16 +38,16 @@ Role: Apple Developer Account Holder.
 1. Open [Certificates, Identifiers & Profiles](https://developer.apple.com/account/resources/identifiers/list).
 2. Open **Identifiers** and select each App ID listed below.
 3. Confirm **Family Controls** and App Group
-   `group.com.craig.paymetime` are enabled.
+   `group.com.nonagon.Screenbump` are enabled.
 4. Follow Apple's
    [Family Controls entitlement request](https://developer.apple.com/documentation/familycontrols/requesting-the-family-controls-entitlement)
    flow for every identifier:
 
-   - `com.craig.PayMeTime`
-   - `com.craig.PayMeTime.ShieldConfiguration`
-   - `com.craig.PayMeTime.ShieldAction`
-   - `com.craig.PayMeTime.DeviceActivityMonitor`
-   - `com.craig.PayMeTime.DeviceActivityReport`
+   - `com.nonagon.Screenbump`
+   - `com.nonagon.Screenbump.ShieldConfiguration`
+   - `com.nonagon.Screenbump.ShieldAction`
+   - `com.nonagon.Screenbump.DeviceActivityMonitor`
+   - `com.nonagon.Screenbump.DeviceActivityReport`
 
 5. Track the requests under **Certificates, Identifiers & Profiles →
    Capability Requests**.
@@ -64,12 +64,12 @@ Role: Account Holder, Admin, or App Manager.
 2. Choose platform **iOS**.
 3. Enter app name **Pay Me Time**.
 4. Choose primary language **English (U.S.)**.
-5. Select bundle ID `com.craig.PayMeTime`.
+5. Select bundle ID `com.nonagon.Screenbump`.
 6. Enter a unique SKU such as `pay-me-time-ios`.
 7. Grant the appropriate user access and create the record.
 
 Success: **Pay Me Time** appears under Apps with bundle ID
-`com.craig.PayMeTime`.
+`com.nonagon.Screenbump`.
 
 ## 5. Return for archive and upload
 

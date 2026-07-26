@@ -20,6 +20,63 @@ final class MoneyTests: XCTestCase {
     }
 
     @MainActor
+    func testRatingCTAStartsAtHalfOfOriginalStarterCredit() {
+        let oneCent = Money.microcentsPerCent
+
+        XCTAssertFalse(
+            AppStore.isFirstRundownRatingEligible(
+                balanceMicrocents: 101 * oneCent,
+                hasAddedPaidCredit: false,
+                requestHandled: false
+            )
+        )
+        XCTAssertTrue(
+            AppStore.isFirstRundownRatingEligible(
+                balanceMicrocents: 100 * oneCent,
+                hasAddedPaidCredit: false,
+                requestHandled: false
+            )
+        )
+        XCTAssertFalse(
+            AppStore.isFirstRundownRatingEligible(
+                balanceMicrocents: 0,
+                hasAddedPaidCredit: false,
+                requestHandled: false
+            )
+        )
+    }
+
+    @MainActor
+    func testRatingCTAOnlyAppearsDuringFirstCreditRundown() {
+        let threshold = Int64(AppStore.firstRundownRatingThresholdCents)
+            * Money.microcentsPerCent
+
+        XCTAssertFalse(
+            AppStore.isFirstRundownRatingEligible(
+                balanceMicrocents: threshold,
+                hasAddedPaidCredit: true,
+                requestHandled: false
+            )
+        )
+        XCTAssertFalse(
+            AppStore.isFirstRundownRatingEligible(
+                balanceMicrocents: threshold,
+                hasAddedPaidCredit: false,
+                requestHandled: true
+            )
+        )
+    }
+
+    @MainActor
+    func testRatingCTAIsOneTime() {
+        let store = AppStore(arguments: ["PayMeTime", "--fixture=rating"])
+
+        XCTAssertTrue(store.shouldShowFirstRundownRatingCTA)
+        store.handleFirstRundownRatingCTA(action: "dismiss")
+        XCTAssertFalse(store.shouldShowFirstRundownRatingCTA)
+    }
+
+    @MainActor
     func testPerAppRateInheritsGlobalDefault() {
         let store = AppStore(arguments: ["PayMeTime", "--fixture=home"])
         let inherited = store.protectedApps.first(where: { $0.rateOverride == nil })!

@@ -112,7 +112,7 @@ Review strategy:
 
 - The containing app requests individual Family Controls authorization and presents the real `FamilyActivityPicker`.
 - Production installs start with an empty selection; category and web-domain tokens are discarded for the app-only MVP.
-- Opaque application tokens, the global default, and per-app rate overrides persist in `group.com.craig.paymetime`.
+- Opaque application tokens, the global default, and per-app rate overrides persist in `group.com.nonagon.Screenbump`.
 - Real selected-app labels and icons are rendered by Apple's token-based `Label` initializers.
 - The Protection screen supports a 1–5¢ global default and 1–5¢ per-app overrides.
 - A Device Activity Report extension aggregates today's real duration by selected app and sorts descending by time spent.
@@ -260,11 +260,11 @@ Each shipping target needs the correct App Group and Family Controls entitlement
 
 The five explicit shipping IDs are:
 
-- `com.craig.PayMeTime`
-- `com.craig.PayMeTime.DeviceActivityMonitor`
-- `com.craig.PayMeTime.DeviceActivityReport`
-- `com.craig.PayMeTime.ShieldAction`
-- `com.craig.PayMeTime.ShieldConfiguration`
+- `com.nonagon.Screenbump`
+- `com.nonagon.Screenbump.DeviceActivityMonitor`
+- `com.nonagon.Screenbump.DeviceActivityReport`
+- `com.nonagon.Screenbump.ShieldAction`
+- `com.nonagon.Screenbump.ShieldConfiguration`
 
 ## 6. State and service boundaries
 
@@ -399,7 +399,10 @@ Do not build Stripe for this model. These credits unlock behavior inside the iOS
 - Request Family Controls distribution for all five shipping bundle IDs.
 - Create the App Store Connect record, competitor-parity record, and review strategy.
 
-**Current evidence:** all five IDs have working development provisioning with Family Controls and `group.com.craig.paymetime`. Distribution requests must still be submitted and approved for release.
+**Current evidence:** the previous prototype identifiers had working development
+provisioning. The five `com.nonagon.Screenbump` identifiers and
+`group.com.nonagon.Screenbump` must now be registered and provisioned with
+Family Controls before device or distribution builds.
 
 **Exit:** entitlement requests submitted and monetization positioning documented.
 

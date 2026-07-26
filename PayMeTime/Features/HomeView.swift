@@ -1,3 +1,4 @@
+import StoreKit
 import SwiftUI
 
 private enum HomeSheet: Identifiable {
@@ -14,6 +15,10 @@ struct HomeView: View {
         ScrollView {
             VStack(spacing: 18) {
                 BalanceHero(store: store)
+
+                if store.shouldShowFirstRundownRatingCTA {
+                    FirstRundownRatingCard(store: store)
+                }
 
                 if let activeWindow = store.activeWindow {
                     ActiveWindowCard(window: activeWindow) {
@@ -50,6 +55,39 @@ struct HomeView: View {
         .task {
             store.trackScreen("home")
         }
+    }
+}
+
+private struct FirstRundownRatingCard: View {
+    @Environment(\.requestReview) private var requestReview
+    let store: AppStore
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            Label("Halfway through your starter credit", systemImage: "star.bubble.fill")
+                .font(.headline)
+                .foregroundStyle(PMTTheme.sage)
+
+            Text("You’ve used $1.00 with Pay Me Time. If it’s helping you pause before opening an app, would you rate it?")
+                .foregroundStyle(.secondary)
+
+            HStack(spacing: 12) {
+                Button("Rate Pay Me Time") {
+                    store.handleFirstRundownRatingCTA(action: "rate")
+                    requestReview()
+                }
+                .buttonStyle(.borderedProminent)
+                .accessibilityIdentifier("home.rateApp")
+
+                Button("Not now") {
+                    store.handleFirstRundownRatingCTA(action: "dismiss")
+                }
+                .buttonStyle(.bordered)
+                .accessibilityIdentifier("home.dismissRating")
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .pmtCard()
     }
 }
 

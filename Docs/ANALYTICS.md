@@ -62,6 +62,7 @@ contract before release.
 | `credit spent` | Debit amount, source, resulting balance |
 | `refill opened` | Entry source |
 | `refill pack selected` | Selected credit amount |
+| `rating request action` | User selected `rate` or `dismiss` on the one-time halfway CTA |
 | `screen viewed` | Stable app-owned screen name |
 | `analytics preference changed` | Enabled state |
 | `screen time milestone reached` | Milestone, seven-day duration, baseline and percent |

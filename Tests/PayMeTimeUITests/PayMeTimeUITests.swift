@@ -31,6 +31,19 @@ final class PayMeTimeUITests: XCTestCase {
         XCTAssertFalse(app.staticTexts["Default rate"].exists)
     }
 
+    func testHomeOffersRatingHalfwayThroughStarterCredit() {
+        let app = XCUIApplication()
+        app.launchArguments = ["--ui-testing", "--fixture=rating"]
+        app.launch()
+
+        XCTAssertTrue(
+            app.staticTexts["Halfway through your starter credit"]
+                .waitForExistence(timeout: 3)
+        )
+        XCTAssertTrue(app.buttons["home.rateApp"].exists)
+        XCTAssertTrue(app.buttons["home.dismissRating"].exists)
+    }
+
     func testSettingsOffersStandaloneCreditPurchase() {
         let app = XCUIApplication()
         app.launchArguments = ["--ui-testing", "--fixture=settings"]

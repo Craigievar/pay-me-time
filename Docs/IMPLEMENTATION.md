@@ -17,6 +17,9 @@
 - Each protected app may inherit the global rate or define its own 1–5¢ override.
 - Configurable free daily time.
 - Integer-microcent access-window calculations and a live countdown.
+- A one-time Home rating CTA appears when the untouched starter balance reaches
+  $1.00, halfway through its first rundown. It is permanently suppressed after
+  a refill or after either CTA action.
 - Daily aggregate Device Activity monitoring that includes activity accumulated
   earlier in the current day when protection is registered or updated.
 - A named Managed Settings shield applied to every selected app when the shared
@@ -66,13 +69,15 @@ exercise Screen Time enforcement.
 
 - Isolated Debug build of the app and all extensions: passed on iOS 26.2.
 - Signed Debug device build: passed for Craig's iPhone 15.
-- Physical installation and launch: passed on July 26, 2026 (`com.craig.PayMeTime`).
-- Current unit suite: 16 passed, 0 failed.
-- Existing UI suite: 7 focused journeys passed.
+- Physical installation and launch previously passed on July 26, 2026 under the
+  prototype identifier. The current shipping identifier is
+  `com.nonagon.Screenbump` and requires fresh provisioning.
+- Current unit suite: 19 passed, 0 failed.
+- Existing UI suite: 8 focused journeys passed.
 - Focused Progress verification: 2 unit tests and 1 bottom-tab UI journey
   passed after the final integration change.
-- Visually inspected onboarding, home, protection, settings, the Home Screen app
-  icon, the four-tab shell, and Progress in light and dark appearance.
+- Visually inspected onboarding, home, the halfway rating CTA, protection,
+  settings, the Home Screen app icon, the four-tab shell, and Progress.
 
 ## Remaining physical and commerce work
 

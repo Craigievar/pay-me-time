@@ -17,14 +17,19 @@ final class AppStore {
         var defaultWindowMinutes: Int
         var starterCreditCentsGranted: Int?
         var starterCreditAnalyticsRecorded: Bool?
+        var firstRundownRatingRequestHandled: Bool?
+        var hasAddedPaidCredit: Bool?
     }
 
     private static let persistenceKey = "pay-me-time-state-v2"
     static let starterCreditCents = 200
+    static let firstRundownRatingThresholdCents = starterCreditCents / 2
     private let persistenceEnabled: Bool
     private let analytics: any AnalyticsTracking
     private var starterCreditCentsGranted: Int
     private var starterCreditAnalyticsRecorded: Bool
+    private var firstRundownRatingRequestHandled: Bool
+    private var hasAddedPaidCredit: Bool
     let fixtureName: String?
     private(set) var onboardingComplete: Bool
     private(set) var globalRateCents: Int
@@ -71,15 +76,25 @@ final class AppStore {
         starterCreditCentsGranted = Self.starterCreditCents
         starterCreditAnalyticsRecorded =
             savedState?.starterCreditAnalyticsRecorded ?? false
+        firstRundownRatingRequestHandled =
+            savedState?.firstRundownRatingRequestHandled ?? false
+        hasAddedPaidCredit = savedState?.hasAddedPaidCredit ?? false
         onboardingComplete = fixture == "onboarding"
             ? false
             : savedState?.onboardingComplete ?? (fixture != nil)
         globalRateCents = savedState?.globalRateCents ?? 1
         freeMinutesPerDay = savedState?.freeMinutesPerDay ?? 60
-        let existingCreditMicrocents = savedState?.creditMicrocents
-            ?? ((fixture == "empty" || fixture == "empty-shield")
-                ? 0
-                : Int64(Self.starterCreditCents) * Money.microcentsPerCent)
+        let fixtureCreditMicrocents: Int64 = switch fixture {
+        case "empty", "empty-shield":
+            0
+        case "rating":
+            Int64(Self.firstRundownRatingThresholdCents)
+                * Money.microcentsPerCent
+        default:
+            Int64(Self.starterCreditCents) * Money.microcentsPerCent
+        }
+        let existingCreditMicrocents =
+            savedState?.creditMicrocents ?? fixtureCreditMicrocents
         creditMicrocents = fixture == nil
             ? sharedSnapshot.creditMicrocents
                 ?? (
@@ -215,6 +230,28 @@ final class AppStore {
         fixtureName == nil ? activitySelection.applicationTokens.count : protectedApps.count
     }
 
+    var shouldShowFirstRundownRatingCTA: Bool {
+        onboardingComplete
+            && Self.isFirstRundownRatingEligible(
+                balanceMicrocents: creditMicrocents,
+                hasAddedPaidCredit: hasAddedPaidCredit,
+                requestHandled: firstRundownRatingRequestHandled
+            )
+    }
+
+    static func isFirstRundownRatingEligible(
+        balanceMicrocents: Int64,
+        hasAddedPaidCredit: Bool,
+        requestHandled: Bool
+    ) -> Bool {
+        let threshold = Int64(firstRundownRatingThresholdCents)
+            * Money.microcentsPerCent
+        return !hasAddedPaidCredit
+            && !requestHandled
+            && balanceMicrocents > 0
+            && balanceMicrocents <= threshold
+    }
+
     func effectiveRate(for token: ApplicationToken) -> Int {
         applicationRateOverrides[ScreenTimeSharedRepository.tokenKey(token)] ?? globalRateCents
     }
@@ -339,6 +376,7 @@ final class AppStore {
 
     func addCredit(cents: Int) {
         let amount = Int64(cents) * Money.microcentsPerCent
+        hasAddedPaidCredit = true
         if persistenceEnabled {
             creditMicrocents = ScreenTimeSharedRepository.update { snapshot in
                 let updatedBalance = (snapshot.creditMicrocents ?? creditMicrocents) + amount
@@ -365,6 +403,18 @@ final class AppStore {
                 cents: cents,
                 isFree: false,
                 source: "prototype_refill"
+            )
+        )
+    }
+
+    func handleFirstRundownRatingCTA(action: String) {
+        guard shouldShowFirstRundownRatingCTA else { return }
+        firstRundownRatingRequestHandled = true
+        persist()
+        analytics.capture(
+            AnalyticsEvent(
+                name: "rating request action",
+                properties: ["action": .string(action)]
             )
         )
     }
@@ -593,7 +643,10 @@ final class AppStore {
             activeWindow: activeWindow,
             defaultWindowMinutes: defaultWindowMinutes,
             starterCreditCentsGranted: starterCreditCentsGranted,
-            starterCreditAnalyticsRecorded: starterCreditAnalyticsRecorded
+            starterCreditAnalyticsRecorded: starterCreditAnalyticsRecorded,
+            firstRundownRatingRequestHandled:
+                firstRundownRatingRequestHandled,
+            hasAddedPaidCredit: hasAddedPaidCredit
         )
         guard let data = try? JSONEncoder().encode(state) else { return }
         UserDefaults.standard.set(data, forKey: Self.persistenceKey)

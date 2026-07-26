@@ -106,7 +106,7 @@ struct AnalyticsSelectionCohort: Codable, Equatable, Sendable {
 }
 
 enum AnalyticsSharedRepository {
-    static let appGroupID = "group.com.craig.paymetime"
+    static let appGroupID = "group.com.nonagon.Screenbump"
     private static let cohortKey = "analytics-selection-cohort-v1"
     private static let eventQueueKey = "analytics-extension-events-v1"
     private static let collectionEnabledKey = "analytics-collection-enabled-v1"

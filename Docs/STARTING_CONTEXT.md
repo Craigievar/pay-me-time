@@ -96,7 +96,7 @@ CURRENT REPOSITORY STATE
 - The real individual Family Controls authorization request and
   `FamilyActivityPicker` are implemented.
 - Production starts with no selected apps; Apple does not permit silent
-  preloading. Opaque selected-app tokens persist in `group.com.craig.paymetime`.
+  preloading. Opaque selected-app tokens persist in `group.com.nonagon.Screenbump`.
 - Apple's token-based labels provide the real app names and icons.
 - The Protection screen has a 1¢ global default, 1–5¢ per-app overrides, and a
   Device Activity report sorted by real time spent.
