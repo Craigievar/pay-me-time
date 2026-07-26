@@ -120,6 +120,14 @@ Review strategy:
   daily seven-day time series and a like-for-like comparison against the seven
   days before the current protected-app selection.
 - Reported cost comes only from the shared access-window ledger snapshot. It is not inferred from foreground activity.
+- The containing app registers a repeating daily aggregate allowance event and
+  includes activity already accumulated earlier in the current day.
+- The monitor extension applies a named Managed Settings shield at the threshold.
+- The shield action atomically reserves the fixed-window cost in a file-locked
+  App Group ledger, unshields only that token, and registers a one-off interval
+  whose end callback restores the shield.
+- The system shield reads the current balance, duration, effective per-app rate,
+  and exact window cost from the shared policy snapshot.
 - PostHog event analytics, lifecycle/screen/interaction autocapture, an in-app
   opt-out, and aggregate Screen Time milestones are implemented. Session replay
   is disabled, and app identities/tokens are never transmitted.
@@ -128,11 +136,8 @@ Review strategy:
 
 Still to implement and prove:
 
-- daily monitoring registration and threshold updates when free time or selection changes;
-- production shield configuration from the shared per-app policy rather than placeholder copy data;
-- atomic access-window reservation, unshielding, expiry scheduling, and re-shielding;
-- writing actual per-app access-window costs into the shared report snapshot;
 - StoreKit products and verified, idempotent credit delivery;
+- complete physical-device evidence for the implemented threshold and window path;
 - the full physical-device matrix below.
 
 ### Must be proven on a physical iPhone
@@ -422,7 +427,11 @@ Do not build Stripe for this model. These credits unlock behavior inside the iOS
 - Re-shield on expiry.
 - Record an atomic local reservation/release ledger.
 
-**Current evidence:** authorization, picker, persistence, per-app configuration, and reporting code are implemented and development-signed. Installation and end-to-end on-phone evidence are still required.
+**Current evidence:** authorization, picker, persistence, per-app configuration,
+reporting, daily monitoring, dynamic shielding, atomic reservation, and timed
+re-shield code are implemented and development-signed. Build 2 was installed on
+Craig's iPhone 15; the device was locked before the new build could launch and
+register its schedule, so end-to-end behavior remains unproven.
 
 **Exit:** on a physical iPhone, one selected app reports real activity, shields, unshields for exactly one chosen window, and re-shields without a duplicate debit.
 

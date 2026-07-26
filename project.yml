@@ -8,7 +8,7 @@ settings:
   base:
     SWIFT_VERSION: "6.0"
     MARKETING_VERSION: "1.0"
-    CURRENT_PROJECT_VERSION: "1"
+    CURRENT_PROJECT_VERSION: "2"
     DEVELOPMENT_TEAM: 9JWU7V7424
     CODE_SIGN_STYLE: Automatic
     GENERATE_INFOPLIST_FILE: YES
@@ -63,6 +63,8 @@ targets:
     platform: iOS
     sources:
       - Extensions/ShieldConfiguration
+      - PayMeTime/Models/Money.swift
+      - PayMeTime/Shared/ScreenTimeShared.swift
     entitlements:
       path: Config/PayMeTimeShieldConfiguration.entitlements
       properties:
@@ -87,6 +89,8 @@ targets:
     platform: iOS
     sources:
       - Extensions/ShieldAction
+      - PayMeTime/Models/Money.swift
+      - PayMeTime/Services/ScreenTimeMonitoringService.swift
       - PayMeTime/Shared/AnalyticsShared.swift
       - PayMeTime/Shared/ScreenTimeShared.swift
     entitlements:
@@ -114,6 +118,7 @@ targets:
     sources:
       - Extensions/DeviceActivityMonitor
       - PayMeTime/Shared/AnalyticsShared.swift
+      - PayMeTime/Shared/ScreenTimeShared.swift
     entitlements:
       path: Config/PayMeTimeDeviceActivityMonitor.entitlements
       properties:

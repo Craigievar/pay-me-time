@@ -80,8 +80,16 @@ final class AppStore {
             ?? ((fixture == "empty" || fixture == "empty-shield")
                 ? 0
                 : Int64(Self.starterCreditCents) * Money.microcentsPerCent)
-        creditMicrocents = existingCreditMicrocents
-            + Int64(starterCreditUpgrade) * Money.microcentsPerCent
+        creditMicrocents = fixture == nil
+            ? sharedSnapshot.creditMicrocents
+                ?? (
+                    existingCreditMicrocents
+                        + Int64(starterCreditUpgrade) * Money.microcentsPerCent
+                )
+            : (
+                existingCreditMicrocents
+                    + Int64(starterCreditUpgrade) * Money.microcentsPerCent
+            )
         protectionEnabled = savedState?.protectionEnabled ?? true
         protectedApps = savedState?.protectedApps ?? Self.fixtureApps(for: fixture)
         activeWindow = savedState?.activeWindow
@@ -97,7 +105,8 @@ final class AppStore {
         analyticsMilestoneRequest = nil
 
         if fixture == nil {
-            syncSharedScreenTimeSnapshot()
+            let snapshot = syncSharedScreenTimeSnapshot()
+            refreshScreenTimeMonitoring(using: snapshot)
             bootstrapSelectionAnalyticsIfNeeded()
             refreshAnalyticsMilestone()
             recordStarterCreditAnalyticsIfNeeded()
@@ -110,6 +119,7 @@ final class AppStore {
     func completeOnboarding() {
         onboardingComplete = true
         persist()
+        refreshScreenTimeMonitoring(using: syncSharedScreenTimeSnapshot())
         analytics.capture(
             AnalyticsEvent(
                 name: "onboarding completed",
@@ -147,6 +157,8 @@ final class AppStore {
         let previousValue = freeMinutesPerDay
         freeMinutesPerDay = min(max(value, 0), 240)
         persist()
+        let snapshot = syncSharedScreenTimeSnapshot(resetAllowance: true)
+        refreshScreenTimeMonitoring(using: snapshot)
         if freeMinutesPerDay != previousValue {
             analytics.capture(
                 AnalyticsEvent(
@@ -235,11 +247,13 @@ final class AppStore {
 
         let selectedKeys = Set(applicationsOnly.applicationTokens.map(ScreenTimeSharedRepository.tokenKey))
         applicationRateOverrides = applicationRateOverrides.filter { selectedKeys.contains($0.key) }
-        syncSharedScreenTimeSnapshot()
+        syncSharedScreenTimeSnapshot(resetAllowance: true)
         reportRevision += 1
     }
 
     func finalizeActivitySelection(now: Date = .now) {
+        let snapshot = syncSharedScreenTimeSnapshot(resetAllowance: true)
+        refreshScreenTimeMonitoring(using: snapshot, now: now)
         guard
             persistenceEnabled,
             analytics.isAvailable,
@@ -299,6 +313,7 @@ final class AppStore {
                     ]
                 )
             )
+            refreshScreenTimeMonitoring(using: syncSharedScreenTimeSnapshot())
             return screenTimeAuthorizationStatus == .approved
         } catch {
             screenTimeAuthorizationStatus = ScreenTimeAuthorizationService.status
@@ -323,7 +338,16 @@ final class AppStore {
     }
 
     func addCredit(cents: Int) {
-        creditMicrocents += Int64(cents) * Money.microcentsPerCent
+        let amount = Int64(cents) * Money.microcentsPerCent
+        if persistenceEnabled {
+            creditMicrocents = ScreenTimeSharedRepository.update { snapshot in
+                let updatedBalance = (snapshot.creditMicrocents ?? creditMicrocents) + amount
+                snapshot.creditMicrocents = updatedBalance
+                return updatedBalance
+            }
+        } else {
+            creditMicrocents += amount
+        }
         persist()
         analytics.capture(
             AnalyticsEvent(
@@ -432,6 +456,10 @@ final class AppStore {
         protectionEnabled = false
         activeWindow = nil
         persist()
+        syncSharedScreenTimeSnapshot(resetAllowance: true)
+        if persistenceEnabled {
+            ScreenTimeMonitoringService.stopAll()
+        }
         analytics.capture(
             AnalyticsEvent(
                 name: "protection toggled",
@@ -443,6 +471,9 @@ final class AppStore {
     func enableProtection() {
         protectionEnabled = true
         persist()
+        refreshScreenTimeMonitoring(
+            using: syncSharedScreenTimeSnapshot(resetAllowance: true)
+        )
         analytics.capture(
             AnalyticsEvent(
                 name: "protection toggled",
@@ -517,6 +548,19 @@ final class AppStore {
     }
 
     func applicationBecameActive(now: Date = .now) {
+        if persistenceEnabled {
+            let snapshot = ScreenTimeSharedRepository.update { snapshot in
+                snapshot.normalizeDay(at: now)
+                return snapshot
+            }
+            if let sharedBalance = snapshot.creditMicrocents,
+                sharedBalance != creditMicrocents {
+                creditMicrocents = sharedBalance
+                persist()
+            }
+            refreshScreenTimeMonitoring(using: snapshot, now: now)
+            reportRevision += 1
+        }
         analytics.flushSharedEvents()
         refreshAnalyticsMilestone(now: now)
     }
@@ -555,28 +599,62 @@ final class AppStore {
         UserDefaults.standard.set(data, forKey: Self.persistenceKey)
     }
 
-    private func syncSharedScreenTimeSnapshot() {
-        guard persistenceEnabled else { return }
-        var snapshot = ScreenTimeSharedRepository.load()
-        let previousTokenKeys = Set(
-            snapshot.selection.applicationTokens.map(
-                ScreenTimeSharedRepository.tokenKey
+    @discardableResult
+    private func syncSharedScreenTimeSnapshot(
+        resetAllowance: Bool = false
+    ) -> SharedScreenTimeSnapshot {
+        guard persistenceEnabled else { return SharedScreenTimeSnapshot() }
+        return ScreenTimeSharedRepository.update { snapshot in
+            let previousTokenKeys = Set(
+                snapshot.selection.applicationTokens.map(
+                    ScreenTimeSharedRepository.tokenKey
+                )
             )
-        )
-        let currentTokenKeys = Set(
-            activitySelection.applicationTokens.map(
-                ScreenTimeSharedRepository.tokenKey
+            let currentTokenKeys = Set(
+                activitySelection.applicationTokens.map(
+                    ScreenTimeSharedRepository.tokenKey
+                )
             )
-        )
-        if currentTokenKeys.isEmpty {
-            snapshot.selectionDate = nil
-        } else if previousTokenKeys != currentTokenKeys || snapshot.selectionDate == nil {
-            snapshot.selectionDate = .now
+            snapshot.normalizeDay()
+            if currentTokenKeys.isEmpty {
+                snapshot.selectionDate = nil
+                snapshot.activeAccessWindows = []
+            } else if previousTokenKeys != currentTokenKeys || snapshot.selectionDate == nil {
+                snapshot.selectionDate = .now
+            }
+            if resetAllowance || previousTokenKeys != currentTokenKeys {
+                snapshot.allowanceReachedDay = nil
+            }
+            if previousTokenKeys != currentTokenKeys {
+                snapshot.activeAccessWindows = []
+            }
+            snapshot.selection = activitySelection
+            snapshot.globalRateCents = globalRateCents
+            snapshot.rateOverrides = applicationRateOverrides
+            snapshot.creditMicrocents = snapshot.creditMicrocents ?? creditMicrocents
+            snapshot.freeMinutesPerDay = freeMinutesPerDay
+            snapshot.defaultWindowMinutes = defaultWindowMinutes
+            snapshot.protectionEnabled = protectionEnabled
+            return snapshot
         }
-        snapshot.selection = activitySelection
-        snapshot.globalRateCents = globalRateCents
-        snapshot.rateOverrides = applicationRateOverrides
-        ScreenTimeSharedRepository.save(snapshot)
+    }
+
+    private func refreshScreenTimeMonitoring(
+        using snapshot: SharedScreenTimeSnapshot,
+        now: Date = .now
+    ) {
+        guard
+            persistenceEnabled,
+            screenTimeAuthorizationStatus == .approved
+        else {
+            return
+        }
+        do {
+            try ScreenTimeMonitoringService.refresh(using: snapshot, now: now)
+            screenTimeErrorMessage = nil
+        } catch {
+            screenTimeErrorMessage = error.localizedDescription
+        }
     }
 
     private func bootstrapSelectionAnalyticsIfNeeded() {

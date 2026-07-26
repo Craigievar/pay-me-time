@@ -60,6 +60,53 @@ final class MoneyTests: XCTestCase {
         XCTAssertEqual(app.costTodayMicrocents(rateCentsPerHour: 3), 1_500_000)
     }
 
+    func testSharedLedgerReservesExactWindowCostAndUpdatesDailyTotal() {
+        let calendar = Calendar(identifier: .gregorian)
+        let now = Date(timeIntervalSince1970: 1_800_000_000)
+        var snapshot = SharedScreenTimeSnapshot(
+            creditMicrocents: 200 * Money.microcentsPerCent,
+            protectionEnabled: true,
+            costDay: calendar.startOfDay(for: now)
+        )
+        let cost = Money.windowCost(rateCentsPerHour: 1, minutes: 15)
+
+        XCTAssertTrue(
+            snapshot.reserve(
+                costMicrocents: cost,
+                forTokenKey: "space-game",
+                at: now,
+                calendar: calendar
+            )
+        )
+        XCTAssertEqual(
+            snapshot.creditMicrocents,
+            200 * Money.microcentsPerCent - 250_000
+        )
+        XCTAssertEqual(
+            snapshot.costMicrocentsByApplication["space-game"],
+            250_000
+        )
+    }
+
+    func testSharedLedgerRejectsReservationWithoutCredit() {
+        let now = Date(timeIntervalSince1970: 1_800_000_000)
+        var snapshot = SharedScreenTimeSnapshot(
+            creditMicrocents: 100_000,
+            protectionEnabled: true,
+            costDay: now
+        )
+
+        XCTAssertFalse(
+            snapshot.reserve(
+                costMicrocents: 250_000,
+                forTokenKey: "space-game",
+                at: now
+            )
+        )
+        XCTAssertEqual(snapshot.creditMicrocents, 100_000)
+        XCTAssertTrue(snapshot.costMicrocentsByApplication.isEmpty)
+    }
+
     @MainActor
     func testProtectedAppsAreSortedByTimeSpentDescending() {
         let store = AppStore(arguments: ["PayMeTime", "--fixture=home"])

@@ -17,6 +17,15 @@
 - Each protected app may inherit the global rate or define its own 1–5¢ override.
 - Configurable free daily time.
 - Integer-microcent access-window calculations and a live countdown.
+- Daily aggregate Device Activity monitoring that includes activity accumulated
+  earlier in the current day when protection is registered or updated.
+- A named Managed Settings shield applied to every selected app when the shared
+  free allowance is reached.
+- Cross-process locked App Group credit reservations, per-app daily cost totals,
+  immediate single-app unshielding, and one-off expiry monitoring that restores
+  the shield after the purchased window.
+- Dynamic system-shield copy showing the selected app's effective rate, exact
+  window cost, duration, and current attention-credit balance.
 - $1, $5, $10, and $25 refill sheet.
 - Standalone advance credit-purchase action in Settings.
 - Persistent local state outside deterministic test fixtures.
@@ -48,14 +57,18 @@
 - `PayMeTimeTests`
 - `PayMeTimeUITests`
 
-The extension targets currently establish the correct system extension points and compile the shield copy. Their physical Screen Time mutations remain intentionally marked as the next device slice.
+The extension targets now implement the daily threshold, system shield, atomic
+reservation, timed unshield, and automatic re-shield path. These mutations still
+require the physical verification matrix below because Simulator builds cannot
+exercise Screen Time enforcement.
 
 ## Verification
 
 - Isolated Debug build of the app and all extensions: passed on iOS 26.2.
 - Signed Debug device build: passed for Craig's iPhone 15.
 - Physical installation and launch: passed on July 26, 2026 (`com.craig.PayMeTime`).
-- Existing full suite: 12 unit tests and 6 UI journeys passed.
+- Current unit suite: 16 passed, 0 failed.
+- Existing UI suite: 7 focused journeys passed.
 - Focused Progress verification: 2 unit tests and 1 bottom-tab UI journey
   passed after the final integration change.
 - Visually inspected onboarding, home, protection, settings, the Home Screen app
@@ -63,8 +76,7 @@ The extension targets currently establish the correct system extension points an
 
 ## Remaining physical and commerce work
 
-- Daily `DeviceActivity` threshold scheduling.
-- Atomic credit reservation, unshielding, and automatic re-shielding on a physical iPhone.
-- Dynamic system-shield snapshot from the selected app's override rate.
+- Complete the physical iPhone threshold, debit, unshield, and timed re-shield
+  verification matrix, including midnight, reboot, and selection changes.
 - StoreKit 2 product loading, verified consumable delivery, refund handling, and Sandbox tests.
 - Family Controls distribution entitlement requests for every relevant target.
