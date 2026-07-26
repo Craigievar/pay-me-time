@@ -102,7 +102,7 @@ struct OnboardingView: View {
             }
             .background(PMTTheme.canvas)
             .familyActivityPicker(
-                headerText: "Choose apps you want Pay Me Time to protect.",
+                headerText: "Choose apps you want Screenbump to protect.",
                 footerText: "Your choices stay private and are represented by opaque Apple tokens.",
                 isPresented: $isPickerPresented,
                 selection: Binding(

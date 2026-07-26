@@ -1,8 +1,8 @@
 # Apple distribution checklist
 
-Pay Me Time uses Family Controls in the containing app and four embedded
-extensions. Development signing is working. TestFlight and App Store uploads
-require the account and distribution steps below.
+Screenbump uses Family Controls in the containing app and four embedded
+extensions. Simulator builds are working. Device, TestFlight, and App Store
+builds require the account, identifier, and distribution steps below.
 
 ## 1. Accept current agreements
 
@@ -36,10 +36,12 @@ and Apple Distribution identities.
 Role: Apple Developer Account Holder.
 
 1. Open [Certificates, Identifiers & Profiles](https://developer.apple.com/account/resources/identifiers/list).
-2. Open **Identifiers** and select each App ID listed below.
-3. Confirm **Family Controls** and App Group
-   `group.com.nonagon.Screenbump` are enabled.
-4. Follow Apple's
+2. Under **Identifiers**, register App Group
+   `group.com.nonagon.Screenbump` if it does not already exist.
+3. Register each explicit App ID listed below if it does not already exist.
+4. Open every App ID and enable **Family Controls** and App Group
+   `group.com.nonagon.Screenbump`.
+5. Follow Apple's
    [Family Controls entitlement request](https://developer.apple.com/documentation/familycontrols/requesting-the-family-controls-entitlement)
    flow for every identifier:
 
@@ -49,7 +51,7 @@ Role: Apple Developer Account Holder.
    - `com.nonagon.Screenbump.DeviceActivityMonitor`
    - `com.nonagon.Screenbump.DeviceActivityReport`
 
-5. Track the requests under **Certificates, Identifiers & Profiles →
+6. Track the requests under **Certificates, Identifiers & Profiles →
    Capability Requests**.
 
 Success: Family Controls distribution status is **Assigned** for all five
@@ -62,13 +64,13 @@ Role: Account Holder, Admin, or App Manager.
 1. In [App Store Connect](https://appstoreconnect.apple.com/), open
    **Apps → + → New App**.
 2. Choose platform **iOS**.
-3. Enter app name **Pay Me Time**.
+3. Enter app name **Screenbump**.
 4. Choose primary language **English (U.S.)**.
 5. Select bundle ID `com.nonagon.Screenbump`.
-6. Enter a unique SKU such as `pay-me-time-ios`.
+6. Enter a unique SKU such as `screenbump-ios`.
 7. Grant the appropriate user access and create the record.
 
-Success: **Pay Me Time** appears under Apps with bundle ID
+Success: **Screenbump** appears under Apps with bundle ID
 `com.nonagon.Screenbump`.
 
 ## 5. Return for archive and upload
@@ -77,7 +79,7 @@ Send back:
 
 - “Apple Distribution is installed.”
 - “All five Family Controls requests are Assigned.”
-- “The Pay Me Time App Store Connect record exists.”
+- “The Screenbump App Store Connect record exists.”
 
 Codex will then regenerate the project, archive the pushed Git revision, inspect
 the signed entitlements in the archive, validate the export, and upload the build

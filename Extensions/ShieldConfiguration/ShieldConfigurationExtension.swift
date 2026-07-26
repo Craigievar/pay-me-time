@@ -28,7 +28,7 @@ final class ShieldConfigurationExtension: ShieldConfigurationDataSource {
             : "You’re out of attention credit"
         let subtitle = hasCredit
             ? "Continue for \(windowMinutes) minutes at \(rate)¢ per hour.\n\n\(Money.balance(snapshot.creditMicrocents ?? 0)) available."
-            : "Add credit in Pay Me Time or turn protection off in Settings."
+            : "Add credit in Screenbump or turn protection off in Settings."
         let primaryLabel = hasCredit
             ? "Start \(windowMinutes) min · \(Money.compactCost(cost))"
             : "Not enough credit"

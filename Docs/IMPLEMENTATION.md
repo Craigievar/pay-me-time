@@ -5,6 +5,8 @@
 ## User-visible app
 
 - Native Swift 6 and SwiftUI app targeting iOS 18+.
+- Customer-facing product and bundle display name: **Screenbump**. Existing
+  `PayMeTime` target and module names remain internal implementation details.
 - Free-download product model with a $2.00 starting attention-credit grant.
 - Warm editorial home with the attention-credit balance as the dominant element.
 - First-run setup says “You start with $2.00 in credits.”
@@ -33,7 +35,7 @@
 - Standalone advance credit-purchase action in Settings.
 - Persistent local state outside deterministic test fixtures.
 - One-time migration adds the second starter dollar to existing prototype state.
-- Screen Bump flexing-bar Home Screen icon configured through
+- Screenbump flexing-bar Home Screen icon configured through
   `AppIcon.appiconset`; the selected 1,254-pixel master is retained as
   `Docs/Brand/ScreenBump-AppIcon-Master.png`.
 - Explicit free-time, credit, and empty-credit shield presentations.

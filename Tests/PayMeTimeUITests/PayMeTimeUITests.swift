@@ -27,6 +27,7 @@ final class PayMeTimeUITests: XCTestCase {
         app.launchArguments = ["--ui-testing", "--fixture=home"]
         app.launch()
 
+        XCTAssertTrue(app.navigationBars["Screenbump"].waitForExistence(timeout: 3))
         XCTAssertTrue(app.staticTexts["attention credit remaining"].waitForExistence(timeout: 3))
         XCTAssertFalse(app.staticTexts["Default rate"].exists)
     }
@@ -40,7 +41,7 @@ final class PayMeTimeUITests: XCTestCase {
             app.staticTexts["Halfway through your starter credit"]
                 .waitForExistence(timeout: 3)
         )
-        XCTAssertTrue(app.buttons["home.rateApp"].exists)
+        XCTAssertEqual(app.buttons["home.rateApp"].label, "Rate Screenbump")
         XCTAssertTrue(app.buttons["home.dismissRating"].exists)
     }
 
@@ -60,7 +61,7 @@ final class PayMeTimeUITests: XCTestCase {
 
         XCTAssertTrue(app.staticTexts["Protection"].waitForExistence(timeout: 3))
         XCTAssertFalse(app.staticTexts["The default starts at 1¢ per hour. Every rate is explicitly capped at 5¢."].exists)
-        XCTAssertFalse(app.staticTexts["Apple keeps app identities private. Pay Me Time stores only opaque selection tokens."].exists)
+        XCTAssertFalse(app.staticTexts["Apple keeps app identities private. Screenbump stores only opaque selection tokens."].exists)
         XCTAssertEqual(
             app.staticTexts.matching(
                 NSPredicate(

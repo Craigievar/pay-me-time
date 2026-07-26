@@ -1,4 +1,4 @@
-# Pay Me Time technical plan
+# Screenbump technical plan
 
 **Status:** implementation in progress
 **Date:** July 26, 2026
@@ -8,7 +8,7 @@
 
 ### Thesis
 
-Pay Me Time turns the moment after a user's chosen free daily allowance into a small, explicit financial decision. The point is not meaningful financial pain; it is a visible mental speed bump.
+Screenbump turns the moment after a user's chosen free daily allowance into a small, explicit financial decision. The point is not meaningful financial pain; it is a visible mental speed bump.
 
 ### MVP rules
 
@@ -75,7 +75,7 @@ Observed App Store practice is more permissive than that broad reading:
 
 This does not guarantee approval of a new or materially different business model. It does show that 4.10 should be treated as a positioning and review-consistency risk, not an automatic prohibition on charging for a Screen Time-powered app.
 
-Pay Me Time should describe what the customer buys as the complete app-owned commitment system:
+Screenbump should describe what the customer buys as the complete app-owned commitment system:
 
 - configurable free daily allowance;
 - deliberate access-window workflow;
@@ -167,7 +167,7 @@ $1.00 available
 [ Not now ]
 ```
 
-The live tick belongs in the Pay Me Time app and, only after the core works, an optional Live Activity.
+The live tick belongs in Screenbump and, only after the core works, an optional Live Activity.
 
 ## 4. Screen lifecycle
 
@@ -204,7 +204,7 @@ The user may inspect the configuration before granting Screen Time permission. I
 
 - The shield says “Credit is empty.”
 - “Not now” closes the attempted app.
-- Refill instructions tell the user to open Pay Me Time; purchase occurs only in the app. Do not assume the shield extension can deep-link to its containing app.
+- Refill instructions tell the user to open Screenbump; purchase occurs only in the app. Do not assume the shield extension can deep-link to its containing app.
 - “Pause protection” remains available in the app and must be deliberate but not hidden.
 - No debit occurs if a refill is pending, canceled, unverified, duplicated, or interrupted.
 
@@ -363,10 +363,10 @@ CreditLedgerEntry
 Use four consumable products:
 
 ```text
-com.paymetime.credit.100
-com.paymetime.credit.500
-com.paymetime.credit.1000
-com.paymetime.credit.2500
+com.nonagon.Screenbump.credit.100
+com.nonagon.Screenbump.credit.500
+com.nonagon.Screenbump.credit.1000
+com.nonagon.Screenbump.credit.2500
 ```
 
 For US positioning, configure price points near $0.99, $4.99, $9.99, and $24.99 while clearly stating the amount of in-app commitment credit granted. The App Store price and the displayed credit balance are related product values, not a redeemable dollar deposit.

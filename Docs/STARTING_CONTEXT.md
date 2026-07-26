@@ -5,13 +5,13 @@ Copy the block below into a new Codex task when implementation begins.
 ```text
 Use $craig-app-development for this project.
 
-We are building a separate native iPhone app named “Pay Me Time.” Start by reading
+We are building a separate native iPhone app named “Screenbump.” Start by reading
 README.md, Docs/MOCKS.md, and Docs/TECHNICAL_PLAN.md completely. Treat project.yml
 as the future Xcode project source of truth.
 
 PRODUCT PROMISE
 
-Pay Me Time is a calm adult commitment app. A user chooses distracting apps, a
+Screenbump is a calm adult commitment app. A user chooses distracting apps, a
 small rate capped at 5¢ per hour, and a free daily allowance. Selected apps work
 normally during the allowance. After it is used, an Apple Screen Time shield
 requires a deliberate, prepaid access window. Commitment credit counts down; it

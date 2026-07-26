@@ -31,7 +31,7 @@ targets:
     info:
       path: PayMeTime/Info.plist
       properties:
-        CFBundleDisplayName: Pay Me Time
+        CFBundleDisplayName: Screenbump
         PostHogProjectToken: $(SCREENBUMP_POSTHOG_KEY)
         UILaunchScreen: {}
         UISupportedInterfaceOrientations:
@@ -74,7 +74,7 @@ targets:
     info:
       path: Extensions/ShieldConfiguration/Info.plist
       properties:
-        CFBundleDisplayName: Pay Me Time Shield
+        CFBundleDisplayName: Screenbump Shield
         NSExtension:
           NSExtensionPointIdentifier: com.apple.ManagedSettingsUI.shield-configuration-service
           NSExtensionPrincipalClass: $(PRODUCT_MODULE_NAME).ShieldConfigurationExtension
@@ -102,7 +102,7 @@ targets:
     info:
       path: Extensions/ShieldAction/Info.plist
       properties:
-        CFBundleDisplayName: Pay Me Time Shield Action
+        CFBundleDisplayName: Screenbump Shield Action
         NSExtension:
           NSExtensionPointIdentifier: com.apple.ManagedSettings.shield-action-service
           NSExtensionPrincipalClass: $(PRODUCT_MODULE_NAME).ShieldActionExtension
@@ -128,7 +128,7 @@ targets:
     info:
       path: Extensions/DeviceActivityMonitor/Info.plist
       properties:
-        CFBundleDisplayName: Pay Me Time Activity Monitor
+        CFBundleDisplayName: Screenbump Activity Monitor
         NSExtension:
           NSExtensionPointIdentifier: com.apple.deviceactivity.monitor-extension
           NSExtensionPrincipalClass: $(PRODUCT_MODULE_NAME).DeviceActivityMonitorExtension
@@ -157,7 +157,7 @@ targets:
     info:
       path: Extensions/DeviceActivityReport/Info.plist
       properties:
-        CFBundleDisplayName: Pay Me Time Activity Report
+        CFBundleDisplayName: Screenbump Activity Report
         EXAppExtensionAttributes:
           EXExtensionPointIdentifier: com.apple.deviceactivityui.report-extension
     settings:

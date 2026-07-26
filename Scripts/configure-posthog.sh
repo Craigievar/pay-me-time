@@ -12,4 +12,4 @@ fi
 
 umask 077
 printf 'SCREENBUMP_POSTHOG_KEY = %s\n' "$SCREENBUMP_POSTHOG_KEY" > "$output_file"
-echo "Configured the local ScreenBump PostHog project token."
+echo "Configured the local Screenbump PostHog project token."

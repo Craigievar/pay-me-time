@@ -4,7 +4,7 @@ Generated July 25, 2026 with the built-in image generation tool.
 
 ## Core flow
 
-![Pay Me Time core flow](Mocks/pay-me-time-core-flow.png)
+![Screenbump core flow](Mocks/pay-me-time-core-flow.png)
 
 The first board establishes the product's visual language and four primary surfaces:
 
@@ -15,7 +15,7 @@ The first board establishes the product's visual language and four primary surfa
 
 ## Meter states
 
-![Pay Me Time meter states](Mocks/pay-me-time-meter-states.png)
+![Screenbump meter states](Mocks/pay-me-time-meter-states.png)
 
 The second board covers the lifecycle:
 
@@ -63,7 +63,7 @@ Avoid coins, gems, streaks, moral grades, aggressive red, celebratory loss anima
 ```text
 Use case: ui-mockup
 Asset type: high-fidelity native iPhone app product-design board
-Primary request: Four screens for Pay Me Time: configuration, Screen Time shield,
+Primary request: Four screens for Screenbump: configuration, Screen Time shield,
 live balance home, and refill sheet. The product uses a $1 included prepaid balance,
 a user-selected rate capped at 5¢ per hour, configurable free daily time, and $1,
 $5, $10, or $25 refills.
@@ -78,7 +78,7 @@ implementable native controls, no shame, gamification, neon, or aggressive red.
 ```text
 Use case: ui-mockup
 Asset type: high-fidelity native iPhone state-flow board
-Primary request: Four consecutive states for Pay Me Time: free time remaining,
+Primary request: Four consecutive states for Screenbump: free time remaining,
 free time finished and credit starts, empty credit, and a confirmed $1 refill.
 Style: native SwiftUI and Screen Time-inspired surfaces, restrained warm neutrals,
 amber attention accent, sage safe-state accent, legible and calm.

@@ -37,7 +37,7 @@ struct HomeView: View {
             .padding(20)
         }
         .background(PMTTheme.canvas)
-        .navigationTitle("Pay Me Time")
+        .navigationTitle("Screenbump")
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button("Refill", systemImage: "plus.circle") {
@@ -68,11 +68,11 @@ private struct FirstRundownRatingCard: View {
                 .font(.headline)
                 .foregroundStyle(PMTTheme.sage)
 
-            Text("You’ve used $1.00 with Pay Me Time. If it’s helping you pause before opening an app, would you rate it?")
+            Text("You’ve used $1.00 with Screenbump. If it’s helping you pause before opening an app, would you rate it?")
                 .foregroundStyle(.secondary)
 
             HStack(spacing: 12) {
-                Button("Rate Pay Me Time") {
+                Button("Rate Screenbump") {
                     store.handleFirstRundownRatingCTA(action: "rate")
                     requestReview()
                 }
