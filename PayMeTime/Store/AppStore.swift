@@ -3,6 +3,29 @@ import Foundation
 import ManagedSettings
 import Observation
 
+enum CreditPurchaseState: Equatable {
+    case idle
+    case loading
+    case partial(message: String)
+    case purchasing(creditCents: Int)
+    case pending
+    case failed(message: String)
+}
+
+enum CreditPurchaseDeliveryError: LocalizedError {
+    case invalidTransaction
+    case persistenceFailed
+
+    var errorDescription: String? {
+        switch self {
+        case .invalidTransaction:
+            "The App Store returned an invalid credit transaction."
+        case .persistenceFailed:
+            "The purchase is verified, but Screenbump could not save the credit. It will retry automatically."
+        }
+    }
+}
+
 @MainActor
 @Observable
 final class AppStore {
@@ -26,6 +49,10 @@ final class AppStore {
     static let firstRundownRatingThresholdCents = starterCreditCents / 2
     private let persistenceEnabled: Bool
     private let analytics: any AnalyticsTracking
+    private let purchaseService: any PurchaseServicing
+    @ObservationIgnored
+    private var purchaseUpdatesTask: Task<Void, Never>?
+    private var fixtureStoreKitCreditLedger: [StoreKitCreditLedgerEntry] = []
     private var starterCreditCentsGranted: Int
     private var starterCreditAnalyticsRecorded: Bool
     private var firstRundownRatingRequestHandled: Bool
@@ -44,19 +71,42 @@ final class AppStore {
     private(set) var screenTimeErrorMessage: String?
     private(set) var reportRevision = 0
     private(set) var analyticsMilestoneRequest: AnalyticsMilestoneRequest?
-    private(set) var anonymousAnalyticsEnabled: Bool
-    let analyticsAvailable: Bool
+    private(set) var creditProducts: [CreditProduct]
+    private(set) var creditPurchaseState: CreditPurchaseState
 
     let availableWindowMinutes = [5, 15, 30]
     private(set) var defaultWindowMinutes: Int
 
     init(
         arguments: [String] = ProcessInfo.processInfo.arguments,
-        analytics: any AnalyticsTracking = NoopAnalyticsTracker()
+        analytics: any AnalyticsTracking = NoopAnalyticsTracker(),
+        purchaseService: (any PurchaseServicing)? = nil
     ) {
-        self.analytics = analytics
         let fixture = arguments.first(where: { $0.hasPrefix("--fixture=") })?
             .replacingOccurrences(of: "--fixture=", with: "")
+        let purchaseFixture = arguments.first(where: {
+            $0.hasPrefix("--purchase-fixture=")
+        })?
+            .replacingOccurrences(of: "--purchase-fixture=", with: "")
+        self.analytics = analytics
+        if let purchaseService {
+            self.purchaseService = purchaseService
+        } else if fixture == nil {
+            self.purchaseService = StoreKitPurchaseService()
+        } else {
+            self.purchaseService = switch purchaseFixture {
+            case "partial":
+                FixturePurchaseService(
+                    availableCatalog: [.oneDollar, .fiveDollars]
+                )
+            case "failed":
+                FixturePurchaseService(
+                    productsError: .productMetadataMismatch
+                )
+            default:
+                FixturePurchaseService()
+            }
+        }
         fixtureName = fixture
         persistenceEnabled = fixture == nil
 
@@ -115,9 +165,9 @@ final class AppStore {
             ? ScreenTimeAuthorizationService.status
             : .approved
         screenTimeErrorMessage = nil
-        analyticsAvailable = analytics.isAvailable
-        anonymousAnalyticsEnabled = analytics.collectionEnabled
         analyticsMilestoneRequest = nil
+        creditProducts = []
+        creditPurchaseState = .idle
 
         if fixture == nil {
             let snapshot = syncSharedScreenTimeSnapshot()
@@ -128,6 +178,7 @@ final class AppStore {
             if starterCreditUpgrade > 0 || starterCreditAnalyticsRecorded {
                 persist()
             }
+            startPurchaseMonitoring()
         }
     }
 
@@ -374,36 +425,118 @@ final class AppStore {
         screenTimeAuthorizationStatus = ScreenTimeAuthorizationService.status
     }
 
-    func addCredit(cents: Int) {
-        let amount = Int64(cents) * Money.microcentsPerCent
-        hasAddedPaidCredit = true
-        if persistenceEnabled {
-            creditMicrocents = ScreenTimeSharedRepository.update { snapshot in
-                let updatedBalance = (snapshot.creditMicrocents ?? creditMicrocents) + amount
-                snapshot.creditMicrocents = updatedBalance
-                return updatedBalance
+    func creditProduct(cents: Int) -> CreditProduct? {
+        creditProducts.first { $0.creditCents == cents }
+    }
+
+    func loadCreditProducts(forceReload: Bool = false) async {
+        guard forceReload || creditProducts.isEmpty else { return }
+        if case .purchasing = creditPurchaseState { return }
+
+        creditPurchaseState = .loading
+        do {
+            let loadedProducts = try await purchaseService.products()
+            let expectedProducts = loadedProducts.filter { product in
+                guard
+                    let catalogProduct = CreditProductCatalog(
+                        rawValue: product.id
+                    )
+                else {
+                    return false
+                }
+                return catalogProduct.creditCents == product.creditCents
             }
-        } else {
-            creditMicrocents += amount
-        }
-        persist()
-        analytics.capture(
-            AnalyticsEvent(
-                name: "payment completed",
+            guard !expectedProducts.isEmpty else {
+                throw PurchaseServiceError.productMetadataMismatch
+            }
+            creditProducts = expectedProducts.sorted {
+                $0.creditCents < $1.creditCents
+            }
+            creditPurchaseState = loadedCreditCatalogState
+        } catch {
+            captureStoreKitError(
+                stage: "catalog_load",
+                error: error,
                 properties: [
-                    "credit_cents": .integer(cents),
-                    "storekit_verified": .boolean(false),
-                    "payment_mode": .string("prototype_refill"),
+                    "force_reload": .boolean(forceReload),
+                    "cached_product_count": .integer(creditProducts.count),
                 ]
             )
-        )
-        analytics.capture(
-            creditEvent(
-                name: "credit granted",
-                cents: cents,
-                isFree: false,
-                source: "prototype_refill"
+            if creditProducts.isEmpty {
+                creditPurchaseState = .failed(
+                    message: error.localizedDescription
+                )
+            } else {
+                creditPurchaseState = .partial(
+                    message: "The App Store couldn’t refresh every price. Try again."
+                )
+            }
+        }
+    }
+
+    @discardableResult
+    func purchaseCredit(cents: Int) async -> Bool {
+        if creditProduct(cents: cents) == nil {
+            await loadCreditProducts(forceReload: true)
+        }
+        guard let product = creditProduct(cents: cents) else {
+            let error = PurchaseServiceError.productUnavailable
+            captureStoreKitError(
+                stage: "purchase_product_lookup",
+                error: error,
+                properties: ["credit_cents": .integer(cents)]
             )
+            creditPurchaseState = .failed(
+                message: error.localizedDescription
+            )
+            return false
+        }
+
+        creditPurchaseState = .purchasing(creditCents: cents)
+        do {
+            switch try await purchaseService.purchase(productID: product.id) {
+            case .success(let transaction):
+                let mutation = try deliver(transaction)
+                await transaction.finish()
+                switch mutation {
+                case .granted, .duplicate:
+                    creditPurchaseState = loadedCreditCatalogState
+                    return true
+                case .reversed, .ignoredRevocation:
+                    creditPurchaseState = .failed(
+                        message: PurchaseServiceError.failedVerification
+                            .localizedDescription
+                    )
+                    return false
+                }
+            case .pending:
+                creditPurchaseState = .pending
+                return false
+            case .userCancelled:
+                creditPurchaseState = loadedCreditCatalogState
+                return false
+            }
+        } catch {
+            captureStoreKitError(
+                stage: "purchase",
+                error: error,
+                properties: [
+                    "credit_cents": .integer(cents),
+                    "product_id": .string(product.id),
+                ]
+            )
+            creditPurchaseState = .failed(message: error.localizedDescription)
+            return false
+        }
+    }
+
+    private var loadedCreditCatalogState: CreditPurchaseState {
+        let loadedProductIDs = Set(creditProducts.map(\.id))
+        if loadedProductIDs == Set(CreditProductCatalog.productIDs) {
+            return .idle
+        }
+        return .partial(
+            message: "The App Store returned only some purchase options. Try again."
         )
     }
 
@@ -571,32 +704,6 @@ final class AppStore {
         )
     }
 
-    func setAnonymousAnalyticsEnabled(_ enabled: Bool) {
-        guard analytics.isAvailable else { return }
-        if enabled {
-            analytics.setCollectionEnabled(true)
-            anonymousAnalyticsEnabled = true
-            analytics.capture(
-                AnalyticsEvent(
-                    name: "analytics preference changed",
-                    properties: ["enabled": .boolean(true)]
-                )
-            )
-            bootstrapSelectionAnalyticsIfNeeded()
-            refreshAnalyticsMilestone()
-        } else {
-            analytics.capture(
-                AnalyticsEvent(
-                    name: "analytics preference changed",
-                    properties: ["enabled": .boolean(false)]
-                )
-            )
-            analytics.setCollectionEnabled(false)
-            anonymousAnalyticsEnabled = false
-            analyticsMilestoneRequest = nil
-        }
-    }
-
     func applicationBecameActive(now: Date = .now) {
         if persistenceEnabled {
             let snapshot = ScreenTimeSharedRepository.update { snapshot in
@@ -629,6 +736,222 @@ final class AppStore {
             now: now
         )
         reportRevision += 1
+    }
+
+    private func startPurchaseMonitoring() {
+        guard purchaseUpdatesTask == nil else { return }
+        let service = purchaseService
+        purchaseUpdatesTask = Task { [weak self, service] in
+            let unfinishedTransactions =
+                await service.unfinishedTransactions()
+            for transaction in unfinishedTransactions {
+                guard let self else { return }
+                await self.processStoreKitUpdate(transaction)
+            }
+
+            for await transaction in service.transactionUpdates() {
+                guard let self else { return }
+                await self.processStoreKitUpdate(transaction)
+            }
+        }
+    }
+
+    private func processStoreKitUpdate(
+        _ transaction: VerifiedCreditTransaction
+    ) async {
+        do {
+            _ = try deliver(transaction)
+            await transaction.finish()
+        } catch {
+            captureStoreKitError(
+                stage: "transaction_update_delivery",
+                error: error,
+                properties: [
+                    "product_id": .string(transaction.productID),
+                ]
+            )
+            creditPurchaseState = .failed(
+                message: error.localizedDescription
+            )
+        }
+    }
+
+    private func captureStoreKitError(
+        stage: String,
+        error: Error,
+        properties additionalProperties: [
+            String: AnalyticsPropertyValue
+        ] = [:]
+    ) {
+        let nsError = error as NSError
+        var properties: [String: AnalyticsPropertyValue] = [
+            "stage": .string(stage),
+            "reason": .string(storeKitErrorReason(error)),
+            "error_domain": .string(nsError.domain),
+            "error_code": .integer(nsError.code),
+        ]
+        properties.merge(additionalProperties) { _, newValue in newValue }
+
+        if let purchaseError = error as? PurchaseServiceError,
+            case let .noValidProducts(returnedProductIDs) = purchaseError {
+            properties["returned_product_count"] = .integer(
+                returnedProductIDs.count
+            )
+            properties["returned_product_ids"] = .string(
+                returnedProductIDs.sorted().joined(separator: ",")
+            )
+        }
+
+        analytics.capture(
+            AnalyticsEvent(
+                name: "storekit error",
+                properties: properties
+            )
+        )
+    }
+
+    private func storeKitErrorReason(_ error: Error) -> String {
+        if let purchaseError = error as? PurchaseServiceError {
+            switch purchaseError {
+            case .productUnavailable:
+                return "product_unavailable"
+            case .productMetadataMismatch:
+                return "product_metadata_mismatch"
+            case .noValidProducts:
+                return "no_valid_products"
+            case .failedVerification:
+                return "failed_verification"
+            }
+        }
+        if let deliveryError = error as? CreditPurchaseDeliveryError {
+            switch deliveryError {
+            case .invalidTransaction:
+                return "invalid_transaction"
+            case .persistenceFailed:
+                return "persistence_failed"
+            }
+        }
+        return "storekit_error"
+    }
+
+    private func deliver(
+        _ transaction: VerifiedCreditTransaction
+    ) throws -> StoreKitCreditMutation {
+        guard
+            let catalogProduct = CreditProductCatalog(
+                rawValue: transaction.productID
+            ),
+            transaction.purchasedQuantity > 0
+        else {
+            throw CreditPurchaseDeliveryError.invalidTransaction
+        }
+
+        let creditCentsResult = catalogProduct.creditCents
+            .multipliedReportingOverflow(
+                by: transaction.purchasedQuantity
+            )
+        guard !creditCentsResult.overflow else {
+            throw CreditPurchaseDeliveryError.invalidTransaction
+        }
+        let amountResult = Int64(creditCentsResult.partialValue)
+            .multipliedReportingOverflow(by: Money.microcentsPerCent)
+        guard !amountResult.overflow else {
+            throw CreditPurchaseDeliveryError.invalidTransaction
+        }
+        let amountMicrocents = amountResult.partialValue
+
+        let result: (
+            mutation: StoreKitCreditMutation,
+            balance: Int64
+        )
+        if persistenceEnabled {
+            do {
+                result = try ScreenTimeSharedRepository.updatePersisting {
+                    snapshot in
+                    snapshot.creditMicrocents =
+                        snapshot.creditMicrocents ?? creditMicrocents
+                    let mutation = snapshot.applyStoreKitCredit(
+                        transactionID: transaction.id,
+                        productID: transaction.productID,
+                        amountMicrocents: amountMicrocents,
+                        purchaseDate: transaction.purchaseDate,
+                        revocationDate: transaction.revocationDate
+                    )
+                    return (
+                        mutation,
+                        snapshot.creditMicrocents ?? creditMicrocents
+                    )
+                }
+            } catch {
+                throw CreditPurchaseDeliveryError.persistenceFailed
+            }
+        } else {
+            var snapshot = SharedScreenTimeSnapshot(
+                creditMicrocents: creditMicrocents,
+                storeKitCreditLedger: fixtureStoreKitCreditLedger
+            )
+            let mutation = snapshot.applyStoreKitCredit(
+                transactionID: transaction.id,
+                productID: transaction.productID,
+                amountMicrocents: amountMicrocents,
+                purchaseDate: transaction.purchaseDate,
+                revocationDate: transaction.revocationDate
+            )
+            fixtureStoreKitCreditLedger =
+                snapshot.storeKitCreditLedger ?? []
+            result = (mutation, snapshot.creditMicrocents ?? creditMicrocents)
+        }
+
+        creditMicrocents = result.balance
+        switch result.mutation {
+        case .granted:
+            hasAddedPaidCredit = true
+            persist()
+            analytics.capture(
+                AnalyticsEvent(
+                    name: "payment completed",
+                    properties: [
+                        "credit_cents": .integer(
+                            creditCentsResult.partialValue
+                        ),
+                        "storekit_verified": .boolean(true),
+                        "payment_mode": .string("storekit"),
+                    ]
+                )
+            )
+            analytics.capture(
+                creditEvent(
+                    name: "credit granted",
+                    cents: creditCentsResult.partialValue,
+                    isFree: false,
+                    source: "storekit"
+                )
+            )
+        case .reversed:
+            persist()
+            analytics.capture(
+                AnalyticsEvent(
+                    name: "payment refunded",
+                    properties: [
+                        "credit_cents": .integer(
+                            creditCentsResult.partialValue
+                        ),
+                        "storekit_verified": .boolean(true),
+                    ]
+                )
+            )
+            analytics.capture(
+                creditEvent(
+                    name: "credit reversed",
+                    cents: creditCentsResult.partialValue,
+                    isFree: false,
+                    source: "storekit_refund"
+                )
+            )
+        case .duplicate, .ignoredRevocation:
+            break
+        }
+        return result.mutation
     }
 
     private func persist() {

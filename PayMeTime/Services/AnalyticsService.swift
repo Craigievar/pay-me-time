@@ -7,7 +7,6 @@ protocol AnalyticsTracking: AnyObject {
     var collectionEnabled: Bool { get }
 
     func capture(_ event: AnalyticsEvent)
-    func setCollectionEnabled(_ enabled: Bool)
     func flushSharedEvents()
 }
 
@@ -17,23 +16,18 @@ final class NoopAnalyticsTracker: AnalyticsTracking {
     let collectionEnabled = false
 
     func capture(_ event: AnalyticsEvent) {}
-    func setCollectionEnabled(_ enabled: Bool) {}
     func flushSharedEvents() {}
 }
 
 @MainActor
 final class PostHogAnalyticsTracker: AnalyticsTracking {
-    static let collectionPreferenceKey = "anonymous-analytics-enabled-v1"
+    private static let legacyCollectionPreferenceKey =
+        "anonymous-analytics-enabled-v1"
 
     let isAvailable: Bool
-    private(set) var collectionEnabled: Bool
+    let collectionEnabled: Bool
 
     private init(projectToken: String?) {
-        let storedPreference = UserDefaults.standard.object(
-            forKey: Self.collectionPreferenceKey
-        ) as? Bool ?? true
-        collectionEnabled = storedPreference
-
         guard
             let projectToken,
             !projectToken.isEmpty,
@@ -45,6 +39,8 @@ final class PostHogAnalyticsTracker: AnalyticsTracking {
             return
         }
 
+        isAvailable = true
+        collectionEnabled = true
         let config = PostHogConfig(
             projectToken: projectToken,
             host: "https://us.i.posthog.com"
@@ -60,14 +56,15 @@ final class PostHogAnalyticsTracker: AnalyticsTracking {
         config.errorTrackingConfig.autoCapture = false
         config.surveys = false
         config.preloadFeatureFlags = false
-        config.optOut = !storedPreference
+        config.optOut = false
         PostHogSDK.shared.setup(config)
+        PostHogSDK.shared.optIn()
 
-        isAvailable = true
-        AnalyticsSharedRepository.setCollectionEnabled(storedPreference)
-        if storedPreference {
-            flushSharedEvents()
-        }
+        UserDefaults.standard.removeObject(
+            forKey: Self.legacyCollectionPreferenceKey
+        )
+        AnalyticsSharedRepository.setCollectionEnabled(true)
+        flushSharedEvents()
     }
 
     static func bootstrap(
@@ -91,19 +88,6 @@ final class PostHogAnalyticsTracker: AnalyticsTracking {
         properties["analytics_schema_version"] = 1
         properties["event_created_at"] = ISO8601DateFormatter().string(from: event.createdAt)
         PostHogSDK.shared.capture(event.name, properties: properties)
-    }
-
-    func setCollectionEnabled(_ enabled: Bool) {
-        guard isAvailable else { return }
-        collectionEnabled = enabled
-        UserDefaults.standard.set(enabled, forKey: Self.collectionPreferenceKey)
-        AnalyticsSharedRepository.setCollectionEnabled(enabled)
-        if enabled {
-            PostHogSDK.shared.optIn()
-            flushSharedEvents()
-        } else {
-            PostHogSDK.shared.optOut()
-        }
     }
 
     func flushSharedEvents() {

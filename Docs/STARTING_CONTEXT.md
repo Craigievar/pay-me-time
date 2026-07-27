@@ -107,9 +107,10 @@ CURRENT REPOSITORY STATE
   release gate.
 - Daily threshold enforcement, atomic reserve/unshield/re-shield, real StoreKit
   delivery, and full physical-device proof remain unfinished.
-- PostHog is integrated for anonymous event analytics and autocapture. Session
-  replay is explicitly disabled. Preserve `Docs/ANALYTICS.md`, the user opt-out,
-  and the rule that selected app names/tokens never leave the device.
+- PostHog is integrated for always-on anonymous event analytics and autocapture
+  when configured. Session replay is explicitly disabled. Preserve
+  `Docs/ANALYTICS.md` and the rule that selected app names/tokens never leave the
+  device.
 
 VALIDATION TARGET
 

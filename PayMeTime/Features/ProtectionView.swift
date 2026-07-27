@@ -35,7 +35,7 @@ struct ProtectionView: View {
                         } description: {
                             Text("Choose apps privately with Apple’s Screen Time picker.")
                         } actions: {
-                            Button("Choose apps") {
+                            Button("Add apps") {
                                 requestAuthorizationAndOpenPicker()
                             }
                             .buttonStyle(.borderedProminent)
@@ -66,6 +66,8 @@ struct ProtectionView: View {
                             // identifier or rendered name.
                             .accessibilityIdentifier("ph-no-capture")
                         }
+
+                        addAppsButton
                     }
                 } header: {
                     Text("Protected apps")
@@ -77,9 +79,16 @@ struct ProtectionView: View {
                             .accessibilityIdentifier("ph-no-capture")
                             .id(store.reportRevision)
                             .frame(
-                                minHeight: max(
-                                    CGFloat(store.selectedApplications.count * 74),
-                                    120
+                                minHeight: CGFloat(
+                                    store.selectedApplications.count * 52
+                                )
+                            )
+                            .listRowInsets(
+                                EdgeInsets(
+                                    top: 0,
+                                    leading: 16,
+                                    bottom: 0,
+                                    trailing: 16
                                 )
                             )
                     } header: {
@@ -128,6 +137,8 @@ struct ProtectionView: View {
                         }
                         .accessibilityIdentifier("protection.app.\(app.name)")
                     }
+
+                    addAppsButton
                 } header: {
                     Text("Protected apps · demo data")
                 } footer: {
@@ -138,15 +149,6 @@ struct ProtectionView: View {
         .scrollContentBackground(.hidden)
         .background(PMTTheme.canvas)
         .navigationTitle("Protection")
-        .toolbar {
-            if store.fixtureName == nil {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button("Choose apps", systemImage: "plus") {
-                        requestAuthorizationAndOpenPicker()
-                    }
-                }
-            }
-        }
         .sheet(item: $selectedRule) { app in
             AppRateEditor(store: store, app: app)
         }
@@ -182,6 +184,14 @@ struct ProtectionView: View {
                 store.finalizeActivitySelection()
             }
         }
+    }
+
+    private var addAppsButton: some View {
+        Button("Add apps", systemImage: "plus") {
+            requestAuthorizationAndOpenPicker()
+        }
+        .fontWeight(.semibold)
+        .accessibilityIdentifier("protection.addApps")
     }
 
     private var reportFilter: DeviceActivityFilter {

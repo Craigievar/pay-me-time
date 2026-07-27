@@ -205,7 +205,7 @@ struct ApplicationUsageReportView: View {
                         metric(title: "Time spent", value: duration(row.duration))
                         metric(title: "Cost", value: cost(row.costMicrocents))
                     }
-                    .padding(.vertical, 10)
+                    .padding(.vertical, 6)
 
                     if row.id != rows.last?.id {
                         Divider()

@@ -128,15 +128,18 @@ Review strategy:
   whose end callback restores the shield.
 - The system shield reads the current balance, duration, effective per-app rate,
   and exact window cost from the shared policy snapshot.
-- PostHog event analytics, lifecycle/screen/interaction autocapture, an in-app
-  opt-out, and aggregate Screen Time milestones are implemented. Session replay
-  is disabled, and app identities/tokens are never transmitted.
+- PostHog event analytics, lifecycle/screen/interaction autocapture, always-on
+  collection when configured, and aggregate Screen Time milestones are
+  implemented. Session replay is disabled, and app identities/tokens are never
+  transmitted.
 - The app plus Device Activity Monitor, Shield Configuration, Shield Action, and Device Activity Report targets compile and sign with explicit development profiles containing Family Controls and the App Group.
 - Simulator build/install succeeds and the automated suite passes.
 
-Still to implement and prove:
+Implemented but still requiring release-environment proof:
 
-- StoreKit products and verified, idempotent credit delivery;
+- StoreKit products, verified idempotent credit delivery, unfinished-transaction
+  recovery, and refund reversal;
+- StoreKit Sandbox, TestFlight, and App Store Connect configuration;
 - complete physical-device evidence for the implemented threshold and window path;
 - the full physical-device matrix below.
 
@@ -363,10 +366,10 @@ CreditLedgerEntry
 Use four consumable products:
 
 ```text
-com.nonagon.Screenbump.credit.100
-com.nonagon.Screenbump.credit.500
-com.nonagon.Screenbump.credit.1000
-com.nonagon.Screenbump.credit.2500
+com.nonagon.screenbump.credit.100
+com.nonagon.screenbump.credit.500
+com.nonagon.screenbump.credit.1000
+com.nonagon.screenbump.credit.2500
 ```
 
 For US positioning, configure price points near $0.99, $4.99, $9.99, and $24.99 while clearly stating the amount of in-app commitment credit granted. The App Store price and the displayed credit balance are related product values, not a redeemable dollar deposit.
@@ -440,10 +443,13 @@ register its schedule, so end-to-end behavior remains unproven.
 
 ### Slice 3 — StoreKit test flow
 
-- Add StoreKit configuration and consumable products.
-- Implement verified, idempotent delivery.
-- Test purchase, pending Ask to Buy, cancellation, duplicate updates, refund/revocation, interruption, and relaunch.
-- Confirm the initial grant behavior separately from refill products.
+- [x] Add a local StoreKit configuration and the four permanent consumable IDs.
+- [x] Implement verified, idempotent delivery and refund reversal.
+- [x] Cover verified purchase, pending state, duplicate delivery, and refund
+  reversal with automated tests.
+- [ ] Exercise Ask to Buy, cancellation, interruption, relaunch, and refund in
+  StoreKit Sandbox on a signed build.
+- [ ] Confirm the initial grant policy across reinstall and multiple devices.
 
 **Exit:** each verified transaction creates exactly one durable grant and unverified transactions create none.
 

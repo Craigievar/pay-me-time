@@ -1,7 +1,9 @@
 .DS_Store
+Artifacts/
 DerivedData*/
 build/
 *.xcuserstate
 xcuserdata/
 PayMeTime.xcodeproj/
 Config/PostHog.local.xcconfig
+getnonagon-site/

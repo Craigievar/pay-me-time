@@ -31,7 +31,12 @@
   the shield after the purchased window.
 - Dynamic system-shield copy showing the selected app's effective rate, exact
   window cost, duration, and current attention-credit balance.
-- $1, $5, $10, and $25 refill sheet.
+- $1, $5, $10, and $25 refill sheet with localized App Store prices.
+- StoreKit 2 consumable loading and verified purchase delivery.
+- Append-only App Group transaction ledger for exact-once grants and refund
+  reversals; transactions finish only after the credit is durably persisted.
+- App-launch recovery through unfinished transactions and
+  `Transaction.updates`.
 - Standalone advance credit-purchase action in Settings.
 - Persistent local state outside deterministic test fixtures.
 - One-time migration adds the second starter dollar to existing prototype state.
@@ -42,8 +47,8 @@
 - Visible pause and “disable this block and stop protecting your time” recovery.
 - Light and dark adaptive semantic surfaces.
 - PostHog event analytics with lifecycle, screen, and interaction autocapture.
-- Session replay explicitly disabled, an in-app anonymous-analytics opt-out, and
-  `ph-no-capture` boundaries on selected-app labels/reports.
+- Session replay explicitly disabled, always-on collection when PostHog is
+  configured, and `ph-no-capture` boundaries on selected-app labels/reports.
 - Aggregate and randomly pseudonymized per-selection Screen Time milestones for
   baseline, weeks 1/2/4, and monthly follow-ups.
 - A fourth bottom tab, Progress, with a seven-day protected-app time-series,
@@ -74,7 +79,8 @@ exercise Screen Time enforcement.
 - Physical installation and launch previously passed on July 26, 2026 under the
   prototype identifier. The current shipping identifier is
   `com.nonagon.Screenbump` and requires fresh provisioning.
-- Current unit suite: 19 passed, 0 failed.
+- Current unit suite: 26 passed, 0 failed, including loading all four products
+  and completing a verified purchase through StoreKitTest.
 - Existing UI suite: 8 focused journeys passed.
 - Focused Progress verification: 2 unit tests and 1 bottom-tab UI journey
   passed after the final integration change.
@@ -85,5 +91,8 @@ exercise Screen Time enforcement.
 
 - Complete the physical iPhone threshold, debit, unshield, and timed re-shield
   verification matrix, including midnight, reboot, and selection changes.
-- StoreKit 2 product loading, verified consumable delivery, refund handling, and Sandbox tests.
+- Complete App Store Connect availability/localization/review metadata for all
+  four consumables.
+- Run StoreKit Sandbox purchase, pending, cancellation, refund, interruption,
+  and relaunch tests on a signed build.
 - Family Controls distribution entitlement requests for every relevant target.

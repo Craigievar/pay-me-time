@@ -11,12 +11,11 @@
 project token to the gitignored `Config/PostHog.local.xcconfig`. The app runs with
 analytics disabled when the token is unavailable.
 
-The SDK never creates identified person profiles. Collection is on by default
-when configured, and Settings exposes a “Share anonymous analytics” switch.
-Turning it off calls PostHog opt-out; turning it on calls opt-in.
-Opt-out also deletes queued extension events and the local analytics selection
-cohort. Extensions drop new analytics events while disabled, so opting back in
-cannot later upload events that were generated while opted out.
+The SDK never creates identified person profiles. Collection is always on when
+PostHog is configured; the app does not expose an analytics preference.
+Existing installs that previously opted out are opted back in on launch. When
+PostHog is not configured, extensions drop analytics events and the app remains
+fully functional.
 
 ## Privacy boundary
 
@@ -62,15 +61,15 @@ contract before release.
 | `credit spent` | Debit amount, source, resulting balance |
 | `refill opened` | Entry source |
 | `refill pack selected` | Selected credit amount |
+| `storekit error` | Failure stage, stable reason, error domain/code, and catalog counts when available |
 | `rating request action` | User selected `rate` or `dismiss` on the one-time halfway CTA |
 | `screen viewed` | Stable app-owned screen name |
-| `analytics preference changed` | Enabled state |
 | `screen time milestone reached` | Milestone, seven-day duration, baseline and percent |
 
-The current refill UI is a prototype and does not use StoreKit. Its
-`payment completed` event therefore includes `storekit_verified=false` and
-`payment_mode=prototype_refill`. Once StoreKit is implemented, emit payment and
-credit events only after verified, idempotent transaction delivery.
+The refill UI uses StoreKit 2. It emits `payment completed` with
+`storekit_verified=true` and `payment_mode=storekit`, followed by the matching
+credit event, only after verified, idempotent transaction delivery has been
+durably persisted. Duplicate transaction updates do not emit another grant.
 
 ## Screen Time milestone method
 
@@ -105,4 +104,7 @@ The SDK captures application lifecycle, SwiftUI/UIKit screen, and supported
 element-interaction events. Automatic screen events are supplemented by
 app-owned `screen viewed` events with stable names. Session replay, surveys,
 identified person profiles, and default person properties are disabled.
-Automatic crash/error capture is also disabled.
+Automatic crash/error capture is also disabled. StoreKit catalog, purchase, and
+transaction-delivery failures are captured manually as privacy-safe
+`storekit error` events so TestFlight failures can be diagnosed without sending
+account or payment details.

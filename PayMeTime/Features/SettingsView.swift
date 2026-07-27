@@ -25,20 +25,6 @@ struct SettingsView: View {
                 LabeledContent("Balance", value: Money.balance(store.creditMicrocents))
             }
 
-            if store.analyticsAvailable {
-                Section {
-                    Toggle(
-                        "Share anonymous analytics",
-                        isOn: Binding(
-                            get: { store.anonymousAnalyticsEnabled },
-                            set: { store.setAnonymousAnalyticsEnabled($0) }
-                        )
-                    )
-                } footer: {
-                    Text("Includes app interactions and aggregate Screen Time trends. App names and Screen Time tokens are never sent.")
-                }
-            }
-
             Section {
                 Button {
                     sheet = .refill

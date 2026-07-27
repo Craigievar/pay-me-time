@@ -13,6 +13,29 @@ struct SharedAccessWindow: Codable, Equatable, Identifiable {
     let rateCentsPerHour: Int
 }
 
+enum StoreKitCreditLedgerKind: String, Codable, Equatable {
+    case grant
+    case refundReversal
+}
+
+struct StoreKitCreditLedgerEntry: Codable, Equatable, Identifiable {
+    let id: UUID
+    let kind: StoreKitCreditLedgerKind
+    let amountMicrocents: Int64
+    let transactionID: UInt64
+    let productID: String
+    let purchaseDate: Date
+    let effectiveAt: Date
+    let createdAt: Date
+}
+
+enum StoreKitCreditMutation: Equatable {
+    case granted(amountMicrocents: Int64)
+    case reversed(amountMicrocents: Int64)
+    case duplicate
+    case ignoredRevocation
+}
+
 struct SharedScreenTimeSnapshot: Codable {
     var selection: FamilyActivitySelection
     var selectionDate: Date?
@@ -26,6 +49,7 @@ struct SharedScreenTimeSnapshot: Codable {
     var costDay: Date?
     var allowanceReachedDay: Date?
     var activeAccessWindows: [SharedAccessWindow]?
+    var storeKitCreditLedger: [StoreKitCreditLedgerEntry]?
 
     init(
         selection: FamilyActivitySelection = .init(),
@@ -39,7 +63,8 @@ struct SharedScreenTimeSnapshot: Codable {
         protectionEnabled: Bool? = nil,
         costDay: Date? = nil,
         allowanceReachedDay: Date? = nil,
-        activeAccessWindows: [SharedAccessWindow]? = nil
+        activeAccessWindows: [SharedAccessWindow]? = nil,
+        storeKitCreditLedger: [StoreKitCreditLedgerEntry]? = nil
     ) {
         self.selection = selection
         self.selectionDate = selectionDate
@@ -53,6 +78,7 @@ struct SharedScreenTimeSnapshot: Codable {
         self.costDay = costDay
         self.allowanceReachedDay = allowanceReachedDay
         self.activeAccessWindows = activeAccessWindows
+        self.storeKitCreditLedger = storeKitCreditLedger
     }
 
     func rate(for token: ApplicationToken) -> Int {
@@ -113,9 +139,73 @@ struct SharedScreenTimeSnapshot: Codable {
         costMicrocentsByApplication[tokenKey, default: 0] += costMicrocents
         return true
     }
+
+    mutating func applyStoreKitCredit(
+        transactionID: UInt64,
+        productID: String,
+        amountMicrocents: Int64,
+        purchaseDate: Date,
+        revocationDate: Date?,
+        now: Date = .now
+    ) -> StoreKitCreditMutation {
+        guard amountMicrocents > 0 else { return .duplicate }
+
+        let entries = storeKitCreditLedger ?? []
+        let hasGrant = entries.contains {
+            $0.transactionID == transactionID && $0.kind == .grant
+        }
+        let hasReversal = entries.contains {
+            $0.transactionID == transactionID
+                && $0.kind == .refundReversal
+        }
+
+        if let revocationDate {
+            guard hasGrant else { return .ignoredRevocation }
+            guard !hasReversal else { return .duplicate }
+
+            let priorBalance = max(0, creditMicrocents ?? 0)
+            let updatedBalance = max(0, priorBalance - amountMicrocents)
+            creditMicrocents = updatedBalance
+            storeKitCreditLedger = entries + [
+                StoreKitCreditLedgerEntry(
+                    id: UUID(),
+                    kind: .refundReversal,
+                    amountMicrocents: -amountMicrocents,
+                    transactionID: transactionID,
+                    productID: productID,
+                    purchaseDate: purchaseDate,
+                    effectiveAt: revocationDate,
+                    createdAt: now
+                )
+            ]
+            return .reversed(
+                amountMicrocents: priorBalance - updatedBalance
+            )
+        }
+
+        guard !hasGrant else { return .duplicate }
+        creditMicrocents = max(0, creditMicrocents ?? 0) + amountMicrocents
+        storeKitCreditLedger = entries + [
+            StoreKitCreditLedgerEntry(
+                id: UUID(),
+                kind: .grant,
+                amountMicrocents: amountMicrocents,
+                transactionID: transactionID,
+                productID: productID,
+                purchaseDate: purchaseDate,
+                effectiveAt: purchaseDate,
+                createdAt: now
+            )
+        ]
+        return .granted(amountMicrocents: amountMicrocents)
+    }
 }
 
 enum ScreenTimeSharedRepository {
+    enum PersistenceError: Error {
+        case appGroupWriteFailed
+    }
+
     static let appGroupID = "group.com.nonagon.Screenbump"
     private static let snapshotKey = "screen-time-snapshot-v1"
     private static let snapshotFilename = "screen-time-snapshot-v2.json"
@@ -129,7 +219,7 @@ enum ScreenTimeSharedRepository {
 
     static func save(_ snapshot: SharedScreenTimeSnapshot) {
         withLock {
-            saveUnlocked(snapshot)
+            _ = saveUnlocked(snapshot)
         }
     }
 
@@ -140,9 +230,25 @@ enum ScreenTimeSharedRepository {
         withLock {
             var snapshot = loadUnlocked()
             let result = mutation(&snapshot)
-            saveUnlocked(snapshot)
+            _ = saveUnlocked(snapshot)
             return result
         }
+    }
+
+    static func updatePersisting<Result>(
+        _ mutation: (inout SharedScreenTimeSnapshot) -> Result
+    ) throws -> Result {
+        var didPersist = false
+        let result = withLock {
+            var snapshot = loadUnlocked()
+            let result = mutation(&snapshot)
+            didPersist = saveUnlocked(snapshot)
+            return result
+        }
+        guard didPersist else {
+            throw PersistenceError.appGroupWriteFailed
+        }
+        return result
     }
 
     static func tokenKey(_ token: ApplicationToken) -> String {
@@ -177,12 +283,21 @@ enum ScreenTimeSharedRepository {
         return snapshot
     }
 
-    private static func saveUnlocked(_ snapshot: SharedScreenTimeSnapshot) {
-        guard let data = try? JSONEncoder().encode(snapshot) else { return }
+    private static func saveUnlocked(_ snapshot: SharedScreenTimeSnapshot) -> Bool {
+        guard let data = try? JSONEncoder().encode(snapshot) else {
+            return false
+        }
+        var savedToFile = false
         if let url = snapshotURL {
-            try? data.write(to: url, options: .atomic)
+            do {
+                try data.write(to: url, options: .atomic)
+                savedToFile = true
+            } catch {
+                savedToFile = false
+            }
         }
         UserDefaults(suiteName: appGroupID)?.set(data, forKey: snapshotKey)
+        return savedToFile
     }
 
     private static var snapshotURL: URL? {

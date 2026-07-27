@@ -1,0 +1,116 @@
+{
+  "identifier" : "D0EA9AE4-2B00-4EBD-9AD4-0426BF6AD53F",
+  "nonRenewingSubscriptions" : [
+
+  ],
+  "products" : [
+    {
+      "displayPrice" : "0.99",
+      "familyShareable" : false,
+      "internalID" : "A517BFC0-B686-4E07-B994-DC1705A10A16",
+      "localizations" : [
+        {
+          "description" : "Adds $1 of non-expiring attention credit.",
+          "displayName" : "$1 Attention Credit",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "com.nonagon.screenbump.credit.100",
+      "referenceName" : "Screenbump Credit $1",
+      "type" : "Consumable"
+    },
+    {
+      "displayPrice" : "4.99",
+      "familyShareable" : false,
+      "internalID" : "E8DB17A0-0751-4E2F-A137-BC33630B8BBB",
+      "localizations" : [
+        {
+          "description" : "Adds $5 of non-expiring attention credit.",
+          "displayName" : "$5 Attention Credit",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "com.nonagon.screenbump.credit.500",
+      "referenceName" : "Screenbump Credit $5",
+      "type" : "Consumable"
+    },
+    {
+      "displayPrice" : "9.99",
+      "familyShareable" : false,
+      "internalID" : "5CF66FCE-C78D-4FCA-B0D7-55A487DA2D6E",
+      "localizations" : [
+        {
+          "description" : "Adds $10 of non-expiring attention credit.",
+          "displayName" : "$10 Attention Credit",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "com.nonagon.screenbump.credit.1000",
+      "referenceName" : "Screenbump Credit $10",
+      "type" : "Consumable"
+    },
+    {
+      "displayPrice" : "24.99",
+      "familyShareable" : false,
+      "internalID" : "CC7DDDB4-D64D-4CE7-9700-790B9BA1A85F",
+      "localizations" : [
+        {
+          "description" : "Adds $25 of non-expiring attention credit.",
+          "displayName" : "$25 Attention Credit",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "com.nonagon.screenbump.credit.2500",
+      "referenceName" : "Screenbump Credit $25",
+      "type" : "Consumable"
+    }
+  ],
+  "settings" : {
+    "_applicationInternalID" : "6794951818",
+    "_developerTeamID" : "9JWU7V7424",
+    "_failTransactionsEnabled" : false,
+    "_locale" : "en_US",
+    "_renewalBillingIssuesEnabled" : false,
+    "_storefront" : "USA",
+    "_storeKitErrors" : [
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Load Products"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Purchase"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Verification"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "App Store Sync"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Subscription Status"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "App Transaction"
+      }
+    ],
+    "_timeRate" : 0
+  },
+  "subscriptionGroups" : [
+
+  ],
+  "version" : {
+    "major" : 4,
+    "minor" : 0
+  }
+}

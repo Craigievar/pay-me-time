@@ -4,11 +4,14 @@ options:
   deploymentTarget:
     iOS: "18.0"
   xcodeVersion: "26.0"
+  postGenCommand: >-
+    /bin/sh Scripts/enable-in-app-purchase-capability.sh
+    PayMeTime.xcodeproj/project.pbxproj
 settings:
   base:
     SWIFT_VERSION: "6.0"
     MARKETING_VERSION: "1.0"
-    CURRENT_PROJECT_VERSION: "4"
+    CURRENT_PROJECT_VERSION: "7"
     DEVELOPMENT_TEAM: 9JWU7V7424
     CODE_SIGN_STYLE: Automatic
     GENERATE_INFOPLIST_FILE: YES
@@ -20,6 +23,8 @@ targets:
   PayMeTime:
     type: application
     platform: iOS
+    attributes:
+      SystemCapabilities: SCREENBUMP_IN_APP_PURCHASE
     sources:
       - PayMeTime
     entitlements:
@@ -32,7 +37,9 @@ targets:
       path: PayMeTime/Info.plist
       properties:
         CFBundleDisplayName: Screenbump
+        ITSAppUsesNonExemptEncryption: false
         PostHogProjectToken: $(SCREENBUMP_POSTHOG_KEY)
+        SKIncludeConsumableInAppPurchaseHistory: true
         UILaunchScreen: {}
         UISupportedInterfaceOrientations:
           - UIInterfaceOrientationPortrait
@@ -173,6 +180,8 @@ targets:
     platform: iOS
     sources:
       - Tests/PayMeTimeTests
+      - path: Config/Screenbump.storekit
+        buildPhase: resources
     dependencies:
       - target: PayMeTime
     settings:
@@ -201,3 +210,6 @@ schemes:
       targets:
         - PayMeTimeTests
         - PayMeTimeUITests
+    run:
+      config: Debug
+      storeKitConfiguration: Config/Screenbump.storekit

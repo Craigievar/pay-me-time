@@ -13,10 +13,6 @@ final class RecordingAnalyticsTracker: AnalyticsTracking {
         events.append(event)
     }
 
-    func setCollectionEnabled(_ enabled: Bool) {
-        collectionEnabled = enabled
-    }
-
     func flushSharedEvents() {}
 }
 
@@ -60,37 +56,47 @@ struct AnalyticsTests {
     }
 
     @Test
-    func prototypeRefillSeparatesPaymentFromPaidCredit() {
+    func verifiedRefillSeparatesPaymentFromPaidCredit() async {
         let tracker = RecordingAnalyticsTracker()
         let store = AppStore(
             arguments: ["PayMeTime", "--fixture=standard"],
-            analytics: tracker
+            analytics: tracker,
+            purchaseService: FixturePurchaseService()
         )
 
-        store.addCredit(cents: 60)
+        await store.loadCreditProducts()
+        let purchased = await store.purchaseCredit(cents: 100)
 
+        #expect(purchased)
         #expect(tracker.events.map(\.name) == [
             "payment completed",
             "credit granted",
         ])
-        #expect(tracker.events[0].properties["storekit_verified"] == .boolean(false))
+        #expect(tracker.events[0].properties["storekit_verified"] == .boolean(true))
         #expect(tracker.events[1].properties["is_free"] == .boolean(false))
-        #expect(tracker.events[1].properties["credit_cents"] == .integer(60))
+        #expect(tracker.events[1].properties["credit_cents"] == .integer(100))
     }
 
     @Test
-    func analyticsOptOutStopsSubsequentEvents() {
+    func failedStoreKitCatalogLoadRecordsDiagnosticContext() async throws {
         let tracker = RecordingAnalyticsTracker()
         let store = AppStore(
             arguments: ["PayMeTime", "--fixture=standard"],
-            analytics: tracker
+            analytics: tracker,
+            purchaseService: FixturePurchaseService(
+                productsError: .noValidProducts(returnedProductIDs: [])
+            )
         )
 
-        store.setAnonymousAnalyticsEnabled(false)
-        store.trackScreen("home")
+        await store.loadCreditProducts(forceReload: true)
 
-        #expect(tracker.collectionEnabled == false)
-        #expect(tracker.events.map(\.name) == ["analytics preference changed"])
+        let event = try #require(
+            tracker.events.first { $0.name == "storekit error" }
+        )
+        #expect(event.properties["stage"] == .string("catalog_load"))
+        #expect(event.properties["reason"] == .string("no_valid_products"))
+        #expect(event.properties["returned_product_count"] == .integer(0))
+        #expect(event.properties["force_reload"] == .boolean(true))
     }
 
     @Test
