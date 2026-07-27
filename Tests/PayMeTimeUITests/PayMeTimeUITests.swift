@@ -50,8 +50,35 @@ final class PayMeTimeUITests: XCTestCase {
         app.launchArguments = ["--ui-testing", "--fixture=settings"]
         app.launch()
 
-        XCTAssertTrue(app.buttons["settings.buyCredits"].waitForExistence(timeout: 3))
+        let buyCredits = app.buttons["settings.buyCredits"]
+        XCTAssertTrue(buyCredits.waitForExistence(timeout: 3))
         XCTAssertFalse(app.staticTexts["Credit never expires and has no cash value."].exists)
+
+        buyCredits.tap()
+
+        let title = app.staticTexts["refill.title"]
+        let cancel = app.buttons["refill.cancel"]
+        let warning = app.staticTexts["refill.noValueWarning"]
+
+        XCTAssertTrue(title.waitForExistence(timeout: 3))
+        XCTAssertTrue(cancel.exists)
+        XCTAssertTrue(warning.exists)
+        XCTAssertFalse(
+            app.staticTexts[
+                "Keep the money moment in front of mind. Credit never expires."
+            ].exists
+        )
+        XCTAssertGreaterThan(cancel.frame.midX, title.frame.midX)
+        XCTAssertLessThanOrEqual(cancel.frame.maxY, title.frame.minY)
+        XCTAssertGreaterThanOrEqual(
+            app.windows.firstMatch.frame.maxX - cancel.frame.maxX,
+            28
+        )
+        XCTAssertEqual(
+            warning.frame.midX,
+            app.windows.firstMatch.frame.midX,
+            accuracy: 2
+        )
     }
 
     func testProtectionOmitsExplanatoryFooters() {
