@@ -208,8 +208,14 @@ final class PayMeTimeUITests: XCTestCase {
         app.launch()
 
         XCTAssertTrue(app.staticTexts["Protection"].waitForExistence(timeout: 3))
+        let globalRate = app.descendants(matching: .any)[
+            "protection.globalRate"
+        ]
+        XCTAssertTrue(globalRate.exists)
+        XCTAssertTrue(globalRate.label.contains("Global default"))
+        XCTAssertTrue(globalRate.label.contains("5¢ / hour"))
         XCTAssertFalse(app.navigationBars["Protection"].buttons["Choose apps"].exists)
-        XCTAssertFalse(app.staticTexts["The default starts at 1¢ per hour. Every rate is explicitly capped at 5¢."].exists)
+        XCTAssertFalse(app.staticTexts["The default starts at 5¢ per hour. Every rate is explicitly capped at 10¢."].exists)
         XCTAssertFalse(app.staticTexts["Apple keeps app identities private. Screenbump stores only opaque selection tokens."].exists)
         XCTAssertEqual(
             app.staticTexts.matching(
@@ -250,6 +256,11 @@ final class PayMeTimeUITests: XCTestCase {
         XCTAssertTrue(save.exists)
         XCTAssertEqual(cancel.frame.midY, save.frame.midY, accuracy: 2)
         XCTAssertTrue(app.switches["Use global default"].exists)
+        XCTAssertTrue(
+            app.staticTexts[
+                "This app can never charge more than 10¢ per hour."
+            ].exists
+        )
 
         let screenshot = XCTAttachment(screenshot: XCUIScreen.main.screenshot())
         screenshot.name = "app-rate-editor-layout"

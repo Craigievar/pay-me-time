@@ -17,6 +17,7 @@ struct ProtectionView: View {
                     value: store.globalRateCents,
                     onChange: { store.updateGlobalRate($0) }
                 )
+                .accessibilityIdentifier("protection.globalRate")
                 Stepper(value: Binding(
                     get: { store.freeMinutesPerDay },
                     set: { store.updateFreeMinutes($0) }
@@ -288,10 +289,14 @@ private struct ApplicationRateEditor: View {
                     if usesDefault {
                         LabeledContent("Effective rate", value: "\(store.globalRateCents)¢ / hour")
                     } else {
-                        Stepper("\(rate)¢ / hour", value: $rate, in: 1...5)
+                        Stepper(
+                            "\(rate)¢ / hour",
+                            value: $rate,
+                            in: HourlyRatePolicy.allowedRange
+                        )
                     }
                 } footer: {
-                    Text("This app can never charge more than 5¢ per hour.")
+                    Text("This app can never charge more than \(HourlyRatePolicy.maximumCentsPerHour)¢ per hour.")
                 }
             }
             .navigationTitle("App rate")
@@ -336,10 +341,14 @@ private struct AppRateEditor: View {
                     if usesDefault {
                         LabeledContent("Effective rate", value: "\(store.globalRateCents)¢ / hour")
                     } else {
-                        Stepper("\(rate)¢ / hour", value: $rate, in: 1...5)
+                        Stepper(
+                            "\(rate)¢ / hour",
+                            value: $rate,
+                            in: HourlyRatePolicy.allowedRange
+                        )
                     }
                 } footer: {
-                    Text("This app can never charge more than 5¢ per hour.")
+                    Text("This app can never charge more than \(HourlyRatePolicy.maximumCentsPerHour)¢ per hour.")
                 }
 
                 Section("What the shield will say") {

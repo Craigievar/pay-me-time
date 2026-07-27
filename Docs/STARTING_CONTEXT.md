@@ -12,7 +12,7 @@ as the future Xcode project source of truth.
 PRODUCT PROMISE
 
 Screenbump is a calm adult commitment app. A user chooses distracting apps, a
-small rate capped at 5¢ per hour, and a free daily allowance. Selected apps work
+small rate capped at 10¢ per hour, and a free daily allowance. Selected apps work
 normally during the allowance. After it is used, an Apple Screen Time shield
 requires a deliberate, prepaid access window. Commitment credit counts down; it
 never becomes an open-ended bill.
@@ -21,7 +21,7 @@ MONEY MODEL
 
 - The app is free to download.
 - Start every user with 200¢ of non-cash, non-transferable attention credit.
-- User rate: exactly 1–5¢ per hour, never higher.
+- User rate: exactly 1–10¢ per hour, never higher.
 - Daily free time: configurable, default 60 minutes.
 - During setup, choose a default 5-, 15-, or 30-minute access window and show
   the exact cost of every choice.
@@ -98,7 +98,7 @@ CURRENT REPOSITORY STATE
 - Production starts with no selected apps; Apple does not permit silent
   preloading. Opaque selected-app tokens persist in `group.com.nonagon.Screenbump`.
 - Apple's token-based labels provide the real app names and icons.
-- The Protection screen has a 1¢ global default, 1–5¢ per-app overrides, and a
+- The Protection screen has a 5¢ global default, 1–10¢ per-app overrides, and a
   Device Activity report sorted by real time spent.
 - Per-app cost must come from actual reserved access-window ledger entries, not
   estimated foreground activity.

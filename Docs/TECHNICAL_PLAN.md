@@ -15,7 +15,7 @@ Screenbump turns the moment after a user's chosen free daily allowance into a sm
 - The app is free to download.
 - Every user starts with 200¢ of non-cash, non-transferable attention credit.
 - The user selects apps privately with `FamilyActivityPicker`.
-- The user chooses a whole-number global default rate from 1¢ through 5¢ per hour and may override it per selected app. There is no higher option or hidden override.
+- The user chooses a whole-number global default rate from 1¢ through 10¢ per hour and may override it per selected app. There is no higher option or hidden override.
 - The user chooses 0–240 free minutes per day; default to 60 minutes and support 5-minute increments.
 - Selected-app activity consumes free time first.
 - During setup, the user chooses a default 5-, 15-, or 30-minute access window.
@@ -44,6 +44,7 @@ Keep the ledger in integer microcents, where 1 cent is 1,000,000 microcents. Do 
 | 1¢/hour | 0.083¢ | 0.25¢ | 0.5¢ | 100 hours |
 | 3¢/hour | 0.25¢ | 0.75¢ | 1.5¢ | 33h 20m |
 | 5¢/hour | 0.417¢ | 1.25¢ | 2.5¢ | 20 hours |
+| 10¢/hour | 0.833¢ | 2.5¢ | 5¢ | 10 hours |
 
 The UI should show fractional cents for a window and a changing time-to-zero. Showing only a two-decimal dollar balance would barely move and would not create the intended meter effect.
 
@@ -114,7 +115,7 @@ Review strategy:
 - Production installs start with an empty selection; category and web-domain tokens are discarded for the app-only MVP.
 - Opaque application tokens, the global default, and per-app rate overrides persist in `group.com.nonagon.Screenbump`.
 - Real selected-app labels and icons are rendered by Apple's token-based `Label` initializers.
-- The Protection screen supports a 1–5¢ global default and 1–5¢ per-app overrides.
+- The Protection screen supports a 1–10¢ global default and 1–10¢ per-app overrides.
 - A Device Activity Report extension aggregates today's real duration by selected app and sorts descending by time spent.
 - The same report extension provides a private on-device Progress view with a
   daily seven-day time series and a like-for-like comparison against the seven
@@ -184,7 +185,7 @@ The live tick belongs in Screenbump and, only after the core works, an optional 
    “Change apps” after selection.
 5. Request individual authorization and select apps with `FamilyActivityPicker`.
 6. Set the daily free allowance and explain it as the global grace period before payments begin.
-7. Keep the initial global rate at 1¢/hour; let the user change global and per-app rates later on Protection.
+7. Keep the initial global rate at 5¢/hour; let the user change global and per-app rates later on Protection.
 8. Choose a default access window.
 9. Show the exact 5-, 15-, and 30-minute costs and approximate hours in $2.
 10. Confirm that payments can be turned off at any time.
@@ -319,7 +320,7 @@ All fixtures use real views and store paths. Activate them only with a Debug/UI-
 id
 schemaVersion
 opaque app tokens
-rateCentsPerHour: UInt8 (validated 1...5)
+rateCentsPerHour: UInt8 (validated 1...10)
 freeMinutesPerDay: UInt16
 defaultWindowMinutes: 5 | 15 | 30
 protectionEnabled
@@ -474,9 +475,9 @@ register its schedule, so end-to-end behavior remains unproven.
 
 ### Unit
 
-- Money math at 1¢, 3¢, and 5¢ rates for all window lengths.
+- Money math at 1¢, 5¢, and 10¢ rates for all window lengths.
 - No floating-point paths.
-- Rate cannot exceed 5¢ or fall below 1¢.
+- Rate cannot exceed 10¢ or fall below 1¢.
 - Balance cannot go negative.
 - Duplicate ledger source IDs are rejected.
 - Midnight resets free time but not credit.
@@ -518,7 +519,7 @@ Compilation or Simulator UI does not count as proof of Screen Time behavior.
 
 The low cap is intentional, but it changes the business:
 
-- At the maximum 5¢/hour, the starting $2 lasts 40 paid hours and $25 lasts 500 paid hours.
+- At the maximum 10¢/hour, the starting $2 lasts 20 paid hours and $25 lasts 250 paid hours.
 - At 3¢/hour, $25 lasts more than 833 paid hours.
 - A daily free allowance may mean many users rarely spend credit at all.
 - The initial included $2 may last months.

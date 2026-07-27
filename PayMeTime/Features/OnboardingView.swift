@@ -200,7 +200,10 @@ struct RateStepper: View {
     let onChange: @MainActor @Sendable (Int) -> Void
 
     var body: some View {
-        Stepper(value: Binding(get: { value }, set: { onChange($0) }), in: 1...5) {
+        Stepper(
+            value: Binding(get: { value }, set: { onChange($0) }),
+            in: HourlyRatePolicy.allowedRange
+        ) {
             LabeledContent(title, value: "\(value)¢ / hour")
         }
     }

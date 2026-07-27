@@ -16,7 +16,16 @@ final class MoneyTests: XCTestCase {
         XCTAssertEqual(Money.windowCost(rateCentsPerHour: 1, minutes: 15), 250_000)
         XCTAssertEqual(Money.windowCost(rateCentsPerHour: 3, minutes: 15), 750_000)
         XCTAssertEqual(Money.windowCost(rateCentsPerHour: 5, minutes: 30), 2_500_000)
+        XCTAssertEqual(Money.windowCost(rateCentsPerHour: 10, minutes: 30), 5_000_000)
         XCTAssertEqual(Money.compactCost(33_333), "<0.1¢")
+    }
+
+    @MainActor
+    func testHourlyRateDefaultsToFiveCents() {
+        let store = AppStore(arguments: ["PayMeTime", "--fixture=home"])
+
+        XCTAssertEqual(store.globalRateCents, 5)
+        XCTAssertEqual(SharedScreenTimeSnapshot().globalRateCents, 5)
     }
 
     @MainActor
@@ -80,21 +89,34 @@ final class MoneyTests: XCTestCase {
     func testPerAppRateInheritsGlobalDefault() {
         let store = AppStore(arguments: ["PayMeTime", "--fixture=home"])
         let inherited = store.protectedApps.first(where: { $0.rateOverride == nil })!
-        XCTAssertEqual(store.effectiveRate(for: inherited), 1)
+        XCTAssertEqual(store.effectiveRate(for: inherited), 5)
 
-        store.updateGlobalRate(4)
-        XCTAssertEqual(store.effectiveRate(for: inherited), 4)
+        store.updateGlobalRate(8)
+        XCTAssertEqual(store.effectiveRate(for: inherited), 8)
 
-        store.setRateOverride(appID: inherited.id, value: 2)
+        store.setRateOverride(appID: inherited.id, value: 10)
         let updated = store.protectedApps.first(where: { $0.id == inherited.id })!
-        XCTAssertEqual(store.effectiveRate(for: updated), 2)
+        XCTAssertEqual(store.effectiveRate(for: updated), 10)
     }
 
     @MainActor
-    func testRateIsAlwaysCappedAtFiveCents() {
+    func testRateIsAlwaysClampedFromOneToTenCents() {
         let store = AppStore(arguments: ["PayMeTime", "--fixture=home"])
         store.updateGlobalRate(99)
-        XCTAssertEqual(store.globalRateCents, 5)
+        XCTAssertEqual(store.globalRateCents, 10)
+
+        store.updateGlobalRate(0)
+        XCTAssertEqual(store.globalRateCents, 1)
+
+        let inherited = store.protectedApps.first(where: {
+            $0.rateOverride == nil
+        })!
+        store.setRateOverride(appID: inherited.id, value: 99)
+        XCTAssertEqual(
+            store.protectedApps.first(where: { $0.id == inherited.id })?
+                .rateOverride,
+            10
+        )
     }
 
     @MainActor

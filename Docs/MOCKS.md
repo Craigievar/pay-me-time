@@ -8,7 +8,7 @@ Generated July 25, 2026 with the built-in image generation tool.
 
 The first board establishes the product's visual language and four primary surfaces:
 
-1. Configure protected apps, a 1–5¢ hourly rate, and free daily time.
+1. Configure protected apps, a 1–10¢ hourly rate, and free daily time.
 2. Reach a calm Screen Time shield after free time is used.
 3. See remaining commitment credit as the dominant figure in the app.
 4. Refill with $1, $5, $10, or $25 of non-expiring credit.
@@ -65,7 +65,7 @@ Use case: ui-mockup
 Asset type: high-fidelity native iPhone app product-design board
 Primary request: Four screens for Screenbump: configuration, Screen Time shield,
 live balance home, and refill sheet. The product uses a $1 included prepaid balance,
-a user-selected rate capped at 5¢ per hour, configurable free daily time, and $1,
+a user-selected rate capped at 10¢ per hour, configurable free daily time, and $1,
 $5, $10, or $25 refills.
 Style: native SwiftUI, iOS 18, calm financial instrument, warm-neutral surfaces,
 charcoal text, amber action accent, sage free-time accent, editorial and accessible.
@@ -82,7 +82,7 @@ Primary request: Four consecutive states for Screenbump: free time remaining,
 free time finished and credit starts, empty credit, and a confirmed $1 refill.
 Style: native SwiftUI and Screen Time-inspired surfaces, restrained warm neutrals,
 amber attention accent, sage safe-state accent, legible and calm.
-Constraints: show a 5¢/hour hard cap, make the depleted state recoverable rather
+Constraints: show a 10¢/hour hard cap, make the depleted state recoverable rather
 than punitive, keep protected apps shielded at an empty balance, and show that
 credit does not expire.
 ```

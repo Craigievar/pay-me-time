@@ -16,7 +16,8 @@ final class ShieldConfigurationExtension: ShieldConfigurationDataSource {
 
     private func configuration(for token: ApplicationToken?) -> ShieldConfiguration {
         let snapshot = ScreenTimeSharedRepository.load()
-        let rate = token.map { snapshot.rate(for: $0) } ?? snapshot.globalRateCents
+        let rate = token.map { snapshot.rate(for: $0) }
+            ?? HourlyRatePolicy.clamped(snapshot.globalRateCents)
         let windowMinutes = max(1, snapshot.defaultWindowMinutes ?? 15)
         let cost = Money.windowCost(
             rateCentsPerHour: rate,

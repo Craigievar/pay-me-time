@@ -15,8 +15,8 @@
   the app picker, global grace period, and activation controls.
 - The app-picker row is the single setup action and changes from “Choose apps
   that you'll pay for” to “Change apps” after selection.
-- Global charge default starts at 1¢/hour and is capped at 5¢.
-- Each protected app may inherit the global rate or define its own 1–5¢ override.
+- Global charge default starts at 5¢/hour and is capped at 10¢.
+- Each protected app may inherit the global rate or define its own 1–10¢ override.
 - Configurable free daily time.
 - Integer-microcent access-window calculations and a live countdown.
 - A one-time Home rating CTA appears when the untouched starter balance reaches

@@ -36,7 +36,7 @@ make test
 to the gitignored `Config/PostHog.local.xcconfig`. If the key is absent, analytics
 stays disabled and the app continues to work.
 
-The implemented app includes onboarding, a persistent $2 starting balance, a 1¢ global default, 1–5¢ per-app overrides, configurable free daily time, live access-window math, explicit shield states, StoreKit refill purchases, settings, and clearly labeled deterministic UI fixtures. A dedicated Progress tab charts the last seven days in protected apps and compares that total with the seven-day baseline captured when the current app selection was made.
+The implemented app includes onboarding, a persistent $2 starting balance, a 5¢ global default, 1–10¢ per-app overrides, configurable free daily time, live access-window math, explicit shield states, StoreKit refill purchases, settings, and clearly labeled deterministic UI fixtures. A dedicated Progress tab charts the last seven days in protected apps and compares that total with the seven-day baseline captured when the current app selection was made.
 
 The production path now requests individual Family Controls authorization and presents Apple's real `FamilyActivityPicker`. Normal installs begin with no selected apps because Apple does not let an app silently preload named applications. Selected apps render with Apple's privacy-preserving labels and icons. A Device Activity Report extension shows real per-app time, sorted from most-used to least-used, and powers the private on-device Progress trend. Its cost column is deliberately sourced from the app's actual access-window ledger snapshot rather than inventing a foreground-use charge.
 

@@ -132,7 +132,10 @@ final class AppStore {
         onboardingComplete = fixture == "onboarding"
             ? false
             : savedState?.onboardingComplete ?? (fixture != nil)
-        globalRateCents = savedState?.globalRateCents ?? 1
+        globalRateCents = HourlyRatePolicy.clamped(
+            savedState?.globalRateCents
+                ?? HourlyRatePolicy.defaultCentsPerHour
+        )
         freeMinutesPerDay = savedState?.freeMinutesPerDay ?? 60
         let fixtureCreditMicrocents: Int64 = switch fixture {
         case "empty", "empty-shield":
@@ -156,11 +159,19 @@ final class AppStore {
                     + Int64(starterCreditUpgrade) * Money.microcentsPerCent
             )
         protectionEnabled = savedState?.protectionEnabled ?? true
-        protectedApps = savedState?.protectedApps ?? Self.fixtureApps(for: fixture)
+        protectedApps = (
+            savedState?.protectedApps ?? Self.fixtureApps(for: fixture)
+        ).map { app in
+            var app = app
+            app.rateOverride = app.rateOverride.map(HourlyRatePolicy.clamped)
+            return app
+        }
         activeWindow = savedState?.activeWindow
         defaultWindowMinutes = savedState?.defaultWindowMinutes ?? 15
         activitySelection = fixture == nil ? sharedSnapshot.selection : FamilyActivitySelection()
-        applicationRateOverrides = fixture == nil ? sharedSnapshot.rateOverrides : [:]
+        applicationRateOverrides = fixture == nil
+            ? sharedSnapshot.rateOverrides.mapValues(HourlyRatePolicy.clamped)
+            : [:]
         screenTimeAuthorizationStatus = fixture == nil
             ? ScreenTimeAuthorizationService.status
             : .approved
@@ -201,7 +212,7 @@ final class AppStore {
 
     func updateGlobalRate(_ value: Int) {
         let previousValue = globalRateCents
-        globalRateCents = min(max(value, 1), 5)
+        globalRateCents = HourlyRatePolicy.clamped(value)
         persist()
         syncSharedScreenTimeSnapshot()
         reportRevision += 1
@@ -239,7 +250,7 @@ final class AppStore {
     }
 
     func effectiveRate(for app: AppRule) -> Int {
-        app.rateOverride ?? globalRateCents
+        HourlyRatePolicy.clamped(app.rateOverride ?? globalRateCents)
     }
 
     var protectedAppsByTimeSpent: [AppRule] {
@@ -257,15 +268,16 @@ final class AppStore {
 
     func setRateOverride(appID: UUID, value: Int?) {
         guard let index = protectedApps.firstIndex(where: { $0.id == appID }) else { return }
-        protectedApps[index].rateOverride = value.map { min(max($0, 1), 5) }
+        let override = value.map(HourlyRatePolicy.clamped)
+        protectedApps[index].rateOverride = override
         persist()
         analytics.capture(
             AnalyticsEvent(
                 name: "protection rate changed",
                 properties: [
                     "scope": .string("fixture_app"),
-                    "uses_global_default": .boolean(value == nil),
-                    "cents_per_hour": .integer(value ?? globalRateCents),
+                    "uses_global_default": .boolean(override == nil),
+                    "cents_per_hour": .integer(override ?? globalRateCents),
                 ]
             )
         )
@@ -304,12 +316,17 @@ final class AppStore {
     }
 
     func effectiveRate(for token: ApplicationToken) -> Int {
-        applicationRateOverrides[ScreenTimeSharedRepository.tokenKey(token)] ?? globalRateCents
+        HourlyRatePolicy.clamped(
+            applicationRateOverrides[
+                ScreenTimeSharedRepository.tokenKey(token)
+            ] ?? globalRateCents
+        )
     }
 
     func setRateOverride(for token: ApplicationToken, value: Int?) {
         let key = ScreenTimeSharedRepository.tokenKey(token)
-        applicationRateOverrides[key] = value.map { min(max($0, 1), 5) }
+        let override = value.map(HourlyRatePolicy.clamped)
+        applicationRateOverrides[key] = override
         if applicationRateOverrides[key] == nil {
             applicationRateOverrides.removeValue(forKey: key)
         }
@@ -320,8 +337,8 @@ final class AppStore {
                 name: "protection rate changed",
                 properties: [
                     "scope": .string("anonymized_app"),
-                    "uses_global_default": .boolean(value == nil),
-                    "cents_per_hour": .integer(value ?? globalRateCents),
+                    "uses_global_default": .boolean(override == nil),
+                    "cents_per_hour": .integer(override ?? globalRateCents),
                 ]
             )
         )

@@ -4,6 +4,20 @@ import FamilyControls
 import Foundation
 import ManagedSettings
 
+enum HourlyRatePolicy {
+    static let minimumCentsPerHour = 1
+    static let maximumCentsPerHour = 10
+    static let defaultCentsPerHour = 5
+
+    static var allowedRange: ClosedRange<Int> {
+        minimumCentsPerHour...maximumCentsPerHour
+    }
+
+    static func clamped(_ value: Int) -> Int {
+        min(max(value, minimumCentsPerHour), maximumCentsPerHour)
+    }
+}
+
 struct SharedAccessWindow: Codable, Equatable, Identifiable {
     let id: UUID
     let token: ApplicationToken
@@ -54,7 +68,7 @@ struct SharedScreenTimeSnapshot: Codable {
     init(
         selection: FamilyActivitySelection = .init(),
         selectionDate: Date? = nil,
-        globalRateCents: Int = 1,
+        globalRateCents: Int = HourlyRatePolicy.defaultCentsPerHour,
         rateOverrides: [String: Int] = [:],
         costMicrocentsByApplication: [String: Int64] = [:],
         creditMicrocents: Int64? = nil,
@@ -68,8 +82,8 @@ struct SharedScreenTimeSnapshot: Codable {
     ) {
         self.selection = selection
         self.selectionDate = selectionDate
-        self.globalRateCents = globalRateCents
-        self.rateOverrides = rateOverrides
+        self.globalRateCents = HourlyRatePolicy.clamped(globalRateCents)
+        self.rateOverrides = rateOverrides.mapValues(HourlyRatePolicy.clamped)
         self.costMicrocentsByApplication = costMicrocentsByApplication
         self.creditMicrocents = creditMicrocents
         self.freeMinutesPerDay = freeMinutesPerDay
@@ -82,7 +96,15 @@ struct SharedScreenTimeSnapshot: Codable {
     }
 
     func rate(for token: ApplicationToken) -> Int {
-        rateOverrides[ScreenTimeSharedRepository.tokenKey(token)] ?? globalRateCents
+        HourlyRatePolicy.clamped(
+            rateOverrides[ScreenTimeSharedRepository.tokenKey(token)]
+                ?? globalRateCents
+        )
+    }
+
+    mutating func normalizeRates() {
+        globalRateCents = HourlyRatePolicy.clamped(globalRateCents)
+        rateOverrides = rateOverrides.mapValues(HourlyRatePolicy.clamped)
     }
 
     func costMicrocents(
@@ -262,28 +284,32 @@ enum ScreenTimeSharedRepository {
         if
             let url = snapshotURL,
             let data = try? Data(contentsOf: url),
-            let snapshot = try? JSONDecoder().decode(
+            var snapshot = try? JSONDecoder().decode(
                 SharedScreenTimeSnapshot.self,
                 from: data
             )
         {
+            snapshot.normalizeRates()
             return snapshot
         }
 
         guard
             let defaults = UserDefaults(suiteName: appGroupID),
             let data = defaults.data(forKey: snapshotKey),
-            let snapshot = try? JSONDecoder().decode(
+            var snapshot = try? JSONDecoder().decode(
                 SharedScreenTimeSnapshot.self,
                 from: data
             )
         else {
             return SharedScreenTimeSnapshot()
         }
+        snapshot.normalizeRates()
         return snapshot
     }
 
     private static func saveUnlocked(_ snapshot: SharedScreenTimeSnapshot) -> Bool {
+        var snapshot = snapshot
+        snapshot.normalizeRates()
         guard let data = try? JSONEncoder().encode(snapshot) else {
             return false
         }
