@@ -77,33 +77,35 @@ struct RefillView: View {
             .navigationTitle("Refill credit")
             .navigationBarTitleDisplayMode(.inline)
             .safeAreaInset(edge: .bottom, spacing: 0) {
-                VStack(spacing: 0) {
-                    Divider()
+                if let confirmButtonTitle {
+                    VStack(spacing: 0) {
+                        Divider()
 
-                    Button {
-                        Task {
-                            if await store.purchaseCredit(
-                                cents: selectedCents
-                            ) {
-                                dismiss()
+                        Button {
+                            Task {
+                                if await store.purchaseCredit(
+                                    cents: selectedCents
+                                ) {
+                                    dismiss()
+                                }
+                            }
+                        } label: {
+                            HStack(spacing: 8) {
+                                if confirmShowsProgress {
+                                    ProgressView()
+                                        .tint(.white)
+                                }
+                                Text(confirmButtonTitle)
+                                    .frame(maxWidth: .infinity)
                             }
                         }
-                    } label: {
-                        HStack(spacing: 8) {
-                            if confirmShowsProgress {
-                                ProgressView()
-                                    .tint(.white)
-                            }
-                            Text(confirmButtonTitle)
-                                .frame(maxWidth: .infinity)
-                        }
+                        .pmtPrimaryButton()
+                        .accessibilityIdentifier("refill.confirm")
+                        .disabled(selectedProduct == nil || purchaseIsBusy)
+                        .padding(20)
                     }
-                    .pmtPrimaryButton()
-                    .accessibilityIdentifier("refill.confirm")
-                    .disabled(selectedProduct == nil || purchaseIsBusy)
-                    .padding(20)
+                    .background(PMTTheme.canvas)
                 }
-                .background(PMTTheme.canvas)
             }
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
@@ -198,21 +200,25 @@ struct RefillView: View {
         store.creditProduct(cents: selectedCents)
     }
 
-    private var confirmButtonTitle: String {
-        if case .pending = store.creditPurchaseState {
+    private var confirmButtonTitle: String? {
+        switch store.creditPurchaseState {
+        case .failed:
+            return nil
+        case .pending:
             return "Purchase pending"
+        case .idle, .loading, .purchasing, .partial:
+            break
         }
+
         if let selectedProduct {
             return "Buy $\(selectedCents / 100) credit for \(selectedProduct.displayPrice)"
         }
-        switch store.creditPurchaseState {
-        case .failed:
-            return "Purchase options unavailable"
-        case .partial:
+
+        if case .partial = store.creditPurchaseState {
             return "Choose an available option"
-        case .idle, .loading, .purchasing, .pending:
-            return "Loading purchase options…"
         }
+
+        return "Loading purchase options…"
     }
 
     private var purchaseIsBusy: Bool {

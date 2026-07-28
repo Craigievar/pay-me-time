@@ -128,10 +128,8 @@ final class PayMeTimeUITests: XCTestCase {
         XCTAssertTrue(error.waitForExistence(timeout: 3))
         let retry = app.buttons["refill.retry"]
         XCTAssertTrue(retry.exists)
-        XCTAssertEqual(
-            app.buttons["refill.confirm"].label,
-            "Purchase options unavailable"
-        )
+        XCTAssertFalse(app.buttons["refill.confirm"].exists)
+        XCTAssertFalse(app.staticTexts["Purchase options unavailable"].exists)
         XCTAssertTrue(
             app.buttons["refill.100"].label.contains("Unavailable")
         )
