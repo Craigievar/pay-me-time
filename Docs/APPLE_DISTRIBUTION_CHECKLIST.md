@@ -84,3 +84,13 @@ Send back:
 Codex will then regenerate the project, archive the pushed Git revision, inspect
 the signed entitlements in the archive, validate the export, and upload the build
 to App Store Connect. Upload does not submit the app for review or release it.
+
+Before every upload, run both entitlement gates. They intentionally fail the
+release if the checked-in XcodeGen configuration, generated project, archive, or
+exported IPA drops Family Controls from any shipping target:
+
+```sh
+make verify-entitlements
+make verify-archive-entitlements ARCHIVE=/path/to/Screenbump.xcarchive
+make verify-ipa-entitlements IPA=/path/to/Screenbump.ipa
+```

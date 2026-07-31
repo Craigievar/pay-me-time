@@ -6,7 +6,8 @@ options:
   xcodeVersion: "26.0"
   postGenCommand: >-
     /bin/sh Scripts/enable-in-app-purchase-capability.sh
-    PayMeTime.xcodeproj/project.pbxproj
+    PayMeTime.xcodeproj/project.pbxproj &&
+    /bin/sh Scripts/verify-family-controls-entitlements.sh configuration
 settings:
   base:
     SWIFT_VERSION: "6.0"
