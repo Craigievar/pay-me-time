@@ -28,7 +28,7 @@ struct OnboardingView: View {
                         OnboardingInsightCard(
                             systemImage: "dollarsign.circle.fill",
                             tint: PMTTheme.amber,
-                            text: "We will charge you a tiny amount (pennies per hour) of real money to use apps that consume your much more valuable time. This research-backed method can help rewire your brain."
+                            text: "After your daily open time, protection begins. If you choose to continue, you can use credits to start a short access window."
                         )
                         .transition(revealTransition)
                     }
@@ -37,7 +37,7 @@ struct OnboardingView: View {
                         OnboardingInsightCard(
                             systemImage: "checkmark.seal.fill",
                             tint: PMTTheme.sage,
-                            text: "You start with $2.00 in credits"
+                            text: "We'll give you some credits to start with"
                         )
                         .transition(revealTransition)
                     }
@@ -53,7 +53,7 @@ struct OnboardingView: View {
                                             .foregroundStyle(PMTTheme.amber)
                                         Text(
                                             store.protectedAppCount == 0
-                                                ? "Choose apps that you'll pay for"
+                                                ? "Choose apps to protect your time from"
                                                 : "Change apps"
                                         )
                                         .foregroundStyle(.primary)
@@ -76,7 +76,7 @@ struct OnboardingView: View {
                                     ), in: 0...240, step: 5) {
                                         LabeledContent("Free time each day", value: "\(store.freeMinutesPerDay) min")
                                     }
-                                    Text("Global grace period before payments start.")
+                                    Text("Global grace period before protection starts")
                                         .font(.caption)
                                         .foregroundStyle(.secondary)
                                 }
@@ -89,7 +89,7 @@ struct OnboardingView: View {
                             .pmtPrimaryButton()
                             .accessibilityIdentifier("onboarding.continue")
 
-                            Text("You can turn off payments at any time.")
+                            Text("You can pause or turn off protection at any time")
                                 .font(.footnote)
                                 .foregroundStyle(.secondary)
                                 .frame(maxWidth: .infinity)

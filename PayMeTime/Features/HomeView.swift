@@ -64,11 +64,11 @@ private struct FirstRundownRatingCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
-            Label("Halfway through your starter credit", systemImage: "star.bubble.fill")
+            Label("How is Screenbump working for you?", systemImage: "star.bubble.fill")
                 .font(.headline)
                 .foregroundStyle(PMTTheme.sage)
 
-            Text("You’ve used $1.00 with Screenbump. If it’s helping you pause before opening an app, would you rate it?")
+            Text("How is Screenbump working for you")
                 .foregroundStyle(.secondary)
 
             HStack(spacing: 12) {
@@ -101,7 +101,7 @@ private struct BalanceHero: View {
                 .foregroundStyle(PMTTheme.sage)
                 .contentTransition(.numericText())
                 .accessibilityIdentifier("home.balance")
-            Text("attention credit remaining")
+            Text("Access balance")
                 .foregroundStyle(.secondary)
             ProgressView(
                 value: min(
@@ -115,7 +115,7 @@ private struct BalanceHero: View {
                 balanceMicrocents: store.creditMicrocents,
                 rateCentsPerHour: store.globalRateCents
             )
-            Text("About \(hours.formatted(.number.precision(.fractionLength(0)))) hours at your default rate")
+            Text("About \(hours.formatted(.number.precision(.fractionLength(0)))) hours of protection bypass at your current setting")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
         }
@@ -137,7 +137,7 @@ private struct ActiveWindowCard: View {
                     .font(.headline)
                 Text(Duration.seconds(remaining).formatted(.time(pattern: .minuteSecond)))
                     .font(.system(.largeTitle, design: .monospaced, weight: .medium))
-                Text("\(window.rateCentsPerHour)¢ per hour · \(Money.compactCost(window.reservedMicrocents)) reserved")
+                Text("\(window.rateCentsPerHour)¢ per hour. \(Money.compactCost(window.reservedMicrocents)) reserved")
                     .foregroundStyle(.secondary)
                 Button("End access window", action: end)
                     .buttonStyle(.bordered)

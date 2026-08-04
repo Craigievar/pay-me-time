@@ -42,7 +42,7 @@ let previews = [
     Preview(
         filename: "02-set-your-own-tiny-cost.png",
         screenshot: "protection.png",
-        title: "Set your own\ntiny cost",
+        title: "Put value on\nyour attention",
         backgroundStart: color(247, 239, 226),
         backgroundEnd: color(229, 196, 146),
         accent: color(187, 108, 18)
@@ -50,7 +50,7 @@ let previews = [
     Preview(
         filename: "03-free-time-comes-first.png",
         screenshot: "shield.png",
-        title: "Your free time\ncomes first",
+        title: "Choose your daily\ngrace period",
         backgroundStart: color(243, 238, 227),
         backgroundEnd: color(209, 221, 203),
         accent: color(111, 128, 104)
@@ -58,7 +58,7 @@ let previews = [
     Preview(
         filename: "04-start-with-two-dollars.png",
         screenshot: "home.png",
-        title: "Start with $2\nin credit",
+        title: "Start with\nincluded credits",
         backgroundStart: color(245, 240, 230),
         backgroundEnd: color(214, 223, 208),
         accent: color(111, 128, 104)

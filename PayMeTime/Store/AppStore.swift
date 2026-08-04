@@ -19,9 +19,9 @@ enum CreditPurchaseDeliveryError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .invalidTransaction:
-            "The App Store returned an invalid credit transaction."
+            "This purchase could not be verified."
         case .persistenceFailed:
-            "The purchase is verified, but Screenbump could not save the credit. It will retry automatically."
+            "Screenbump could not add the access balance. It will retry automatically."
         }
     }
 }

@@ -19,8 +19,8 @@ struct ShieldPreviewView: View {
             VStack(spacing: 0) {
                 Picker("Shield state", selection: $mode) {
                     Text("Free").tag(ShieldMode.freeTime)
-                    Text("Credit").tag(ShieldMode.credit)
-                    Text("Empty").tag(ShieldMode.empty)
+                    Text("Access").tag(ShieldMode.credit)
+                    Text("No balance").tag(ShieldMode.empty)
                 }
                 .pickerStyle(.segmented)
                 .padding()
@@ -85,27 +85,27 @@ struct ShieldSurface: View {
             }
 
             VStack(spacing: 14) {
-                Text(mode == .empty ? "You spent all of your time credit" : "Use your time carefully. It costs you!")
+                Text(mode == .empty ? "No access balance available" : "Use your time carefully.")
                     .font(.system(.title, design: .serif, weight: .bold))
                     .multilineTextAlignment(.center)
                     .accessibilityIdentifier("shield.title")
 
                 if mode == .empty {
-                    Text("Wait until your free time tomorrow, or refill to use the apps.")
+                    Text("Go back, wait for your daily time to reset, or manage protection in Screenbump.")
                         .font(.title3)
                         .multilineTextAlignment(.center)
                         .foregroundStyle(.secondary)
                 } else {
-                    Text("You decided to charge yourself \(rate)¢ per hour to use this app.")
+                    Text("You set your protection at \(rate)¢ per hour.")
                         .font(.title3)
                         .multilineTextAlignment(.center)
                         .foregroundStyle(.secondary)
-                    Text("Your time is worth way more than those pennies.")
+                    Text("Your time is worth way more than pennies.")
                         .font(.title3.italic())
                         .multilineTextAlignment(.center)
                         .foregroundStyle(.secondary)
                     if mode == .freeTime {
-                        Text("You currently have \(freeMinutes) minutes of time left before you're charged credits.")
+                        Text("\(freeMinutes) minutes remain before protection begins.")
                             .font(.headline)
                             .multilineTextAlignment(.center)
                             .foregroundStyle(PMTTheme.sage)
@@ -120,11 +120,11 @@ struct ShieldSurface: View {
             Spacer()
 
             VStack(spacing: 12) {
-                Button(mode == .empty ? "Refill" : "Proceed", action: proceed)
+                Button(mode == .empty ? "Manage access" : "Start access window", action: proceed)
                     .pmtPrimaryButton()
                     .accessibilityIdentifier("shield.proceed")
 
-                Button("I’ll pass", action: pass)
+                Button("Go back", action: pass)
                     .font(.headline)
                     .frame(maxWidth: .infinity)
                     .frame(minHeight: 52)

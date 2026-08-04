@@ -18,18 +18,18 @@ struct SettingsView: View {
                     set: { $0 ? store.enableProtection() : store.disableProtection() }
                 ))
                 LabeledContent("Daily free time", value: "\(store.freeMinutesPerDay) min")
-                LabeledContent("Default charge rate", value: "\(store.globalRateCents)¢ / hour")
+                LabeledContent("Default access rate", value: "\(store.globalRateCents)¢ / hour")
             }
 
-            Section("Credit") {
-                LabeledContent("Balance", value: Money.balance(store.creditMicrocents))
+            Section("Access balance") {
+                LabeledContent("Available", value: Money.balance(store.creditMicrocents))
             }
 
             Section {
                 Button {
                     sheet = .refill
                 } label: {
-                    Label("Buy more credits", systemImage: "plus.circle.fill")
+                    Label("Add access balance", systemImage: "plus.circle.fill")
                         .frame(maxWidth: .infinity)
                 }
                 .pmtPrimaryButton()

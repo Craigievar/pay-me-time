@@ -128,7 +128,7 @@ struct ProtectionView: View {
                                         systemImage: "clock"
                                     )
                                     TodayMetric(
-                                        title: "Cost",
+                                        title: "Balance used",
                                         value: Money.compactCost(store.costToday(for: app)),
                                         systemImage: "creditcard"
                                     )
@@ -296,7 +296,7 @@ private struct ApplicationRateEditor: View {
                         )
                     }
                 } footer: {
-                    Text("This app can never charge more than \(HourlyRatePolicy.maximumCentsPerHour)¢ per hour.")
+                    Text("Protection is capped at \(HourlyRatePolicy.maximumCentsPerHour)¢ per hour")
                 }
             }
             .navigationTitle("App rate")
@@ -348,11 +348,11 @@ private struct AppRateEditor: View {
                         )
                     }
                 } footer: {
-                    Text("This app can never charge more than \(HourlyRatePolicy.maximumCentsPerHour)¢ per hour.")
+                    Text("Protection is capped at \(HourlyRatePolicy.maximumCentsPerHour)¢ per hour")
                 }
 
                 Section("What the shield will say") {
-                    Text("You decided to charge yourself \(usesDefault ? store.globalRateCents : rate)¢ per hour to use this app.")
+                    Text("It costs \(usesDefault ? store.globalRateCents : rate)¢ to bypass protection. Every access window shows its exact amount before it starts")
                     Text("Your time is worth way more than those pennies.")
                         .italic()
                 }

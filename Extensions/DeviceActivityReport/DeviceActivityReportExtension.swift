@@ -203,7 +203,7 @@ struct ApplicationUsageReportView: View {
                             .lineLimit(1)
                         Spacer(minLength: 12)
                         metric(title: "Time spent", value: duration(row.duration))
-                        metric(title: "Cost", value: cost(row.costMicrocents))
+                        metric(title: "Balance used", value: cost(row.costMicrocents))
                     }
                     .padding(.vertical, 6)
 

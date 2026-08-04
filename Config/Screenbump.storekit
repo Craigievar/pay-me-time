@@ -10,13 +10,13 @@
       "internalID" : "A517BFC0-B686-4E07-B994-DC1705A10A16",
       "localizations" : [
         {
-          "description" : "Adds $1 of non-expiring attention credit.",
-          "displayName" : "$1 Attention Credit",
+          "description" : "Adds $1 balance for optional access windows.",
+          "displayName" : "Small Access Pack",
           "locale" : "en_US"
         }
       ],
       "productID" : "com.nonagon.screenbump.credit.100",
-      "referenceName" : "Screenbump Credit $1",
+      "referenceName" : "Screenbump Small Access Pack",
       "type" : "Consumable"
     },
     {
@@ -25,13 +25,13 @@
       "internalID" : "E8DB17A0-0751-4E2F-A137-BC33630B8BBB",
       "localizations" : [
         {
-          "description" : "Adds $5 of non-expiring attention credit.",
-          "displayName" : "$5 Attention Credit",
+          "description" : "Adds $5 balance for optional access windows.",
+          "displayName" : "Standard Access Pack",
           "locale" : "en_US"
         }
       ],
       "productID" : "com.nonagon.screenbump.credit.500",
-      "referenceName" : "Screenbump Credit $5",
+      "referenceName" : "Screenbump Standard Access Pack",
       "type" : "Consumable"
     },
     {
@@ -40,13 +40,13 @@
       "internalID" : "5CF66FCE-C78D-4FCA-B0D7-55A487DA2D6E",
       "localizations" : [
         {
-          "description" : "Adds $10 of non-expiring attention credit.",
-          "displayName" : "$10 Attention Credit",
+          "description" : "Adds $10 balance for optional access windows.",
+          "displayName" : "Large Access Pack",
           "locale" : "en_US"
         }
       ],
       "productID" : "com.nonagon.screenbump.credit.1000",
-      "referenceName" : "Screenbump Credit $10",
+      "referenceName" : "Screenbump Large Access Pack",
       "type" : "Consumable"
     },
     {
@@ -55,13 +55,13 @@
       "internalID" : "CC7DDDB4-D64D-4CE7-9700-790B9BA1A85F",
       "localizations" : [
         {
-          "description" : "Adds $25 of non-expiring attention credit.",
-          "displayName" : "$25 Attention Credit",
+          "description" : "Adds $25 balance for optional access windows.",
+          "displayName" : "Extended Access Pack",
           "locale" : "en_US"
         }
       ],
       "productID" : "com.nonagon.screenbump.credit.2500",
-      "referenceName" : "Screenbump Credit $25",
+      "referenceName" : "Screenbump Extended Access Pack",
       "type" : "Consumable"
     }
   ],

@@ -19,7 +19,7 @@ struct RefillView: View {
                                 store.trackRefillPackSelected(cents: cents)
                             } label: {
                                 VStack(spacing: 6) {
-                                    Text("$\(cents / 100) credit")
+                                    Text(packName(for: cents))
                                         .font(.title2.weight(.semibold))
 
                                     if let product {
@@ -60,7 +60,7 @@ struct RefillView: View {
                         }
                     }
 
-                    Text("Commitment credit has no cash value and cannot be transferred or redeemed.")
+                    Text("Purchased access balance is used only for optional access windows. It has no cash value.")
                         .font(.footnote)
                         .foregroundStyle(.secondary)
                         .multilineTextAlignment(.center)
@@ -74,7 +74,7 @@ struct RefillView: View {
             }
             .scrollBounceBehavior(.basedOnSize)
             .background(PMTTheme.canvas)
-            .navigationTitle("Refill credit")
+            .navigationTitle("Add access")
             .navigationBarTitleDisplayMode(.inline)
             .safeAreaInset(edge: .bottom, spacing: 0) {
                 if let confirmButtonTitle {
@@ -141,7 +141,7 @@ struct RefillView: View {
         switch store.creditPurchaseState {
         case .pending:
             Label(
-                "Purchase pending. Credit will be added after Apple approves it.",
+                "Purchase pending. Access balance will be added after approval.",
                 systemImage: "clock"
             )
             .font(.footnote)
@@ -211,7 +211,7 @@ struct RefillView: View {
         }
 
         if let selectedProduct {
-            return "Buy $\(selectedCents / 100) credit for \(selectedProduct.displayPrice)"
+            return "Buy \(packName(for: selectedCents)) · \(selectedProduct.displayPrice)"
         }
 
         if case .partial = store.creditPurchaseState {
@@ -259,5 +259,20 @@ struct RefillView: View {
             return
         }
         selectedCents = firstAvailableProduct.creditCents
+    }
+
+    private func packName(for cents: Int) -> String {
+        switch cents {
+        case 100:
+            "Small Access Pack"
+        case 500:
+            "Standard Access Pack"
+        case 1_000:
+            "Large Access Pack"
+        case 2_500:
+            "Extended Access Pack"
+        default:
+            "Access Pack"
+        }
     }
 }

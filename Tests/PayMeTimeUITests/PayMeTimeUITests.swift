@@ -13,10 +13,15 @@ final class PayMeTimeUITests: XCTestCase {
                 "Research shows that even small explicit costs cause our brains to think instead of running on autopilot."
             ].exists
         )
-        XCTAssertTrue(app.staticTexts["You start with $2.00 in credits"].exists)
-        XCTAssertTrue(app.buttons["Choose apps that you'll pay for"].exists)
-        XCTAssertTrue(app.staticTexts["Global grace period before payments start."].exists)
-        XCTAssertTrue(app.staticTexts["You can turn off payments at any time."].exists)
+        XCTAssertTrue(
+            app.staticTexts[
+                "After your daily open time, protection begins. If you choose to continue, you can use credits to start a short access window."
+            ].exists
+        )
+        XCTAssertTrue(app.staticTexts["We'll give you some credits to start with"].exists)
+        XCTAssertTrue(app.buttons["Choose apps to protect your time from"].exists)
+        XCTAssertTrue(app.staticTexts["Global grace period before protection starts"].exists)
+        XCTAssertTrue(app.staticTexts["You can pause or turn off protection at any time"].exists)
         XCTAssertFalse(app.staticTexts["Apple keeps this private. Apps must be chosen by you in the Screen Time picker and cannot be silently preloaded."].exists)
         XCTAssertFalse(app.staticTexts["Set your friction"].exists)
         XCTAssertFalse(app.staticTexts["Default charge rate"].exists)
@@ -28,7 +33,7 @@ final class PayMeTimeUITests: XCTestCase {
         app.launch()
 
         XCTAssertTrue(app.navigationBars["Screenbump"].waitForExistence(timeout: 3))
-        XCTAssertTrue(app.staticTexts["attention credit remaining"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.staticTexts["Access balance"].waitForExistence(timeout: 3))
         XCTAssertFalse(app.staticTexts["Default rate"].exists)
     }
 
@@ -38,7 +43,7 @@ final class PayMeTimeUITests: XCTestCase {
         app.launch()
 
         XCTAssertTrue(
-            app.staticTexts["Halfway through your starter credit"]
+            app.staticTexts["How is Screenbump working for you?"]
                 .waitForExistence(timeout: 3)
         )
         XCTAssertEqual(app.buttons["home.rateApp"].label, "Rate Screenbump")
@@ -62,7 +67,7 @@ final class PayMeTimeUITests: XCTestCase {
 
         buyCredits.tap()
 
-        let title = app.staticTexts["Refill credit"]
+        let title = app.staticTexts["Add access"]
         let cancel = app.buttons["refill.cancel"]
         let warning = app.staticTexts["refill.noValueWarning"]
         let confirm = app.buttons["refill.confirm"]
@@ -76,7 +81,7 @@ final class PayMeTimeUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["$24.99"].exists)
         XCTAssertEqual(
             confirm.label,
-            "Buy $1 credit for $0.99"
+            "Buy Small Access Pack · $0.99"
         )
         XCTAssertFalse(
             app.staticTexts[
@@ -170,7 +175,7 @@ final class PayMeTimeUITests: XCTestCase {
         XCTAssertFalse(app.buttons["refill.1000"].isEnabled)
         XCTAssertEqual(
             app.buttons["refill.confirm"].label,
-            "Buy $1 credit for $0.99"
+            "Buy Small Access Pack · $0.99"
         )
 
         let screenshot = XCTAttachment(screenshot: XCUIScreen.main.screenshot())
@@ -188,7 +193,7 @@ final class PayMeTimeUITests: XCTestCase {
         XCTAssertTrue(refill.waitForExistence(timeout: 3))
         refill.tap()
 
-        let title = app.staticTexts["Refill credit"]
+        let title = app.staticTexts["Add access"]
         let cancel = app.buttons["refill.cancel"]
         XCTAssertTrue(title.waitForExistence(timeout: 3))
         XCTAssertTrue(cancel.exists)
@@ -256,7 +261,7 @@ final class PayMeTimeUITests: XCTestCase {
         XCTAssertTrue(app.switches["Use global default"].exists)
         XCTAssertTrue(
             app.staticTexts[
-                "This app can never charge more than 10¢ per hour."
+                "Protection is capped at 10¢ per hour"
             ].exists
         )
 
@@ -292,9 +297,9 @@ final class PayMeTimeUITests: XCTestCase {
         app.launchArguments = ["--ui-testing", "--fixture=shield"]
         app.launch()
 
-        XCTAssertTrue(app.staticTexts["Use your time carefully. It costs you!"].waitForExistence(timeout: 3))
-        XCTAssertTrue(app.buttons["Proceed"].exists)
-        XCTAssertTrue(app.buttons["I’ll pass"].exists)
+        XCTAssertTrue(app.staticTexts["Use your time carefully."].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.buttons["Start access window"].exists)
+        XCTAssertTrue(app.buttons["Go back"].exists)
     }
 
     func testEmptyShieldIncludesDisableEscape() {
@@ -302,7 +307,7 @@ final class PayMeTimeUITests: XCTestCase {
         app.launchArguments = ["--ui-testing", "--fixture=empty-shield"]
         app.launch()
 
-        XCTAssertTrue(app.staticTexts["You spent all of your time credit"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.staticTexts["No access balance available"].waitForExistence(timeout: 3))
         XCTAssertTrue(app.buttons["shield.disable"].exists)
     }
 }

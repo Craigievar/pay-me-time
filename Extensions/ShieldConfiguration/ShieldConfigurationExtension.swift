@@ -25,11 +25,11 @@ final class ShieldConfigurationExtension: ShieldConfigurationDataSource {
         )
         let hasCredit = (snapshot.creditMicrocents ?? 0) >= cost
         let title = hasCredit
-            ? "Free time is finished"
-            : "You’re out of attention credit"
+            ? "Protection started"
+            : "No access balance available"
         let subtitle = hasCredit
-            ? "Continue for \(windowMinutes) minutes at \(rate)¢ per hour.\n\n\(Money.balance(snapshot.creditMicrocents ?? 0)) available."
-            : "Add credit in Screenbump or turn protection off in Settings."
+            ? "Start an optional \(windowMinutes)-minute access window. Uses \(Money.compactCost(cost)) from your \(Money.balance(snapshot.creditMicrocents ?? 0)) access balance."
+            : "Open Screenbump to add access or manage protection."
         let primaryLabel = hasCredit
             ? "Start \(windowMinutes) min · \(Money.compactCost(cost))"
             : "Not enough credit"
@@ -48,7 +48,7 @@ final class ShieldConfigurationExtension: ShieldConfigurationDataSource {
             ),
             primaryButtonLabel: .init(text: primaryLabel, color: .white),
             primaryButtonBackgroundColor: UIColor(red: 0.784, green: 0.475, blue: 0.122, alpha: 1),
-            secondaryButtonLabel: .init(text: "I’ll pass", color: .label)
+            secondaryButtonLabel: .init(text: "Go Back", color: .label)
         )
     }
 }
